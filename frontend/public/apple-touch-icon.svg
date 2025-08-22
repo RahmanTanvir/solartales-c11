@@ -1,0 +1,36 @@
+<!-- Simple SVG icon for apple-touch-icon -->
+<svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="spaceGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3b82f6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8b5cf6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="180" height="180" rx="20" fill="url(#spaceGradient)"/>
+  
+  <!-- Stars -->
+  <circle cx="30" cy="30" r="2" fill="white" opacity="0.8"/>
+  <circle cx="150" cy="40" r="1.5" fill="white" opacity="0.6"/>
+  <circle cx="160" cy="80" r="1" fill="white" opacity="0.7"/>
+  <circle cx="20" cy="120" r="1.5" fill="white" opacity="0.9"/>
+  <circle cx="140" cy="140" r="2" fill="white" opacity="0.8"/>
+  
+  <!-- Central planet/sun -->
+  <circle cx="90" cy="90" r="35" fill="#fbbf24" opacity="0.9"/>
+  <circle cx="90" cy="90" r="30" fill="#f59e0b"/>
+  
+  <!-- Solar flare effect -->
+  <path d="M 90 55 L 95 45 L 85 45 Z" fill="#fcd34d" opacity="0.8"/>
+  <path d="M 125 90 L 135 95 L 135 85 Z" fill="#fcd34d" opacity="0.8"/>
+  <path d="M 90 125 L 85 135 L 95 135 Z" fill="#fcd34d" opacity="0.8"/>
+  <path d="M 55 90 L 45 85 L 45 95 Z" fill="#fcd34d" opacity="0.8"/>
+  
+  <!-- Orbital ring -->
+  <circle cx="90" cy="90" r="55" stroke="white" stroke-width="2" fill="none" opacity="0.3"/>
+  
+  <!-- Small orbiting object -->
+  <circle cx="145" cy="90" r="4" fill="#e5e7eb"/>
+</svg>

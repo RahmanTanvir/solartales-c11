@@ -1,0 +1,418 @@
+@import "tailwindcss";
+
+:root {
+  --stellar-primary: #FFA500;
+  --stellar-secondary: #FF6B35;
+  --stellar-accent: #06b6d4;
+  --stellar-warning: #f59e0b;
+  --stellar-danger: #ef4444;
+  --stellar-success: #10b981;
+  --stellar-dark: #1a1a2e;
+  --stellar-darker: #16213e;
+  --stellar-light: #e2e8f0;
+  --font-inter: "Inter", system-ui, sans-serif;
+}
+
+/* Space Background Animation */
+#space-background {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 25%, #0f3460 50%, #16213e 75%, #1a1a2e 100%);
+  background-size: 400% 400%;
+  animation: stellarGradient 20s ease infinite;
+}
+
+#space-background::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+    radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 90px 40px, #fff, transparent),
+    radial-gradient(1px 1px at 130px 80px, rgba(255,255,255,0.6), transparent),
+    radial-gradient(2px 2px at 160px 30px, #fff, transparent);
+  background-repeat: repeat;
+  background-size: 200px 100px;
+  animation: twinkle 4s linear infinite;
+  opacity: 0.6;
+}
+
+@keyframes stellarGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 0.9; }
+}
+
+/* Era-Specific Theme Styles */
+
+/* Victorian Era Styling */
+.era-victorian {
+  font-family: 'Times New Roman', serif;
+  filter: sepia(0.3) contrast(1.1);
+}
+
+.era-victorian .era-border {
+  border-style: double;
+  border-width: 4px;
+  border-image: linear-gradient(45deg, #d4af37, #b8860b) 1;
+}
+
+.era-victorian .era-text {
+  text-shadow: 2px 2px 4px rgba(212, 175, 55, 0.3);
+  letter-spacing: 0.5px;
+}
+
+.era-victorian .era-background {
+  background: 
+    linear-gradient(135deg, rgba(212, 175, 55, 0.1) 0%, rgba(184, 134, 11, 0.2) 100%),
+    repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 10px,
+      rgba(212, 175, 55, 0.05) 10px,
+      rgba(212, 175, 55, 0.05) 20px
+    );
+}
+
+.era-victorian .telegraph-symbol::before {
+  content: "⚡";
+  font-size: 1.2em;
+  color: #d4af37;
+  margin-right: 0.5rem;
+}
+
+/* Modern Era Styling */
+.era-modern {
+  font-family: 'Arial', 'Helvetica', sans-serif;
+}
+
+.era-modern .era-border {
+  border: 2px solid;
+  border-image: linear-gradient(90deg, #3b82f6, #06b6d4, #3b82f6) 1;
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+}
+
+.era-modern .era-text {
+  text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+}
+
+.era-modern .era-background {
+  background: 
+    linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(6, 182, 212, 0.2) 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 5px,
+      rgba(59, 130, 246, 0.1) 5px,
+      rgba(59, 130, 246, 0.1) 6px
+    );
+}
+
+.era-modern .circuit-pattern {
+  background-image: 
+    linear-gradient(90deg, rgba(59, 130, 246, 0.2) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(59, 130, 246, 0.2) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+/* Internet Age Styling */
+.era-digital {
+  font-family: 'Courier New', 'Lucida Console', monospace;
+}
+
+.era-digital .era-border {
+  border: 1px solid;
+  border-image: linear-gradient(45deg, #f97316, #7c3aed, #f97316) 1;
+  animation: digitalGlow 2s ease-in-out infinite alternate;
+}
+
+.era-digital .era-text {
+  text-shadow: 0 0 10px rgba(249, 115, 22, 0.6);
+  animation: textGlitch 3s linear infinite;
+}
+
+.era-digital .era-background {
+  background: 
+    linear-gradient(135deg, rgba(249, 115, 22, 0.1) 0%, rgba(124, 58, 237, 0.2) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(249, 115, 22, 0.1) 2px,
+      rgba(249, 115, 22, 0.1) 4px
+    );
+}
+
+.era-digital .matrix-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.era-digital .matrix-effect::before {
+  content: "01001010010101001010100101010010101001010100101010010101001010100101010010101001010100101010010101001010100101010010101001010100101";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  color: rgba(249, 115, 22, 0.1);
+  font-size: 8px;
+  line-height: 1;
+  white-space: pre-wrap;
+  animation: matrixFlow 10s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes digitalGlow {
+  0% { box-shadow: 0 0 5px rgba(249, 115, 22, 0.3); }
+  100% { box-shadow: 0 0 20px rgba(249, 115, 22, 0.6), 0 0 30px rgba(124, 58, 237, 0.3); }
+}
+
+@keyframes textGlitch {
+  0%, 90%, 100% { text-shadow: 0 0 10px rgba(249, 115, 22, 0.6); }
+  95% { text-shadow: 2px 0 10px rgba(249, 115, 22, 0.8), -2px 0 10px rgba(124, 58, 237, 0.8); }
+}
+
+@keyframes matrixFlow {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100%); }
+}
+
+/* Time Travel Specific Animations */
+.time-travel-entrance {
+  animation: timeWarp 1s ease-out;
+}
+
+.time-travel-exit {
+  animation: timeWarpReverse 1s ease-in;
+}
+
+@keyframes timeWarp {
+  0% {
+    transform: scale(0.1) rotateY(180deg);
+    opacity: 0;
+    filter: blur(20px);
+  }
+  50% {
+    transform: scale(1.1) rotateY(90deg);
+    opacity: 0.5;
+    filter: blur(10px);
+  }
+  100% {
+    transform: scale(1) rotateY(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+@keyframes timeWarpReverse {
+  0% {
+    transform: scale(1) rotateY(0deg);
+    opacity: 1;
+    filter: blur(0px);
+  }
+  50% {
+    transform: scale(1.1) rotateY(-90deg);
+    opacity: 0.5;
+    filter: blur(10px);
+  }
+  100% {
+    transform: scale(0.1) rotateY(-180deg);
+    opacity: 0;
+    filter: blur(20px);
+  }
+}
+
+/* Historical Timeline Styling */
+.timeline-dot {
+  position: relative;
+  z-index: 10;
+}
+
+.timeline-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #8b5cf6, #3b82f6);
+  animation: timelinePulse 2s ease-in-out infinite;
+}
+
+@keyframes timelinePulse {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.8), 0 0 30px rgba(59, 130, 246, 0.6);
+  }
+}
+
+/* Glass morphism effect */
+.glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+}
+
+/* Aurora effect */
+.aurora {
+  background: linear-gradient(45deg, 
+    rgba(16, 185, 129, 0.3) 0%,
+    rgba(99, 102, 241, 0.3) 25%,
+    rgba(139, 92, 246, 0.3) 50%,
+    rgba(6, 182, 212, 0.3) 75%,
+    rgba(16, 185, 129, 0.3) 100%);
+  background-size: 300% 300%;
+  animation: auroraShift 8s ease-in-out infinite;
+}
+
+@keyframes auroraShift {
+  0%, 100% { background-position: 0% 50%; }
+  33% { background-position: 100% 0%; }
+  66% { background-position: 0% 100%; }
+}
+
+/* Solar flare effect */
+.solar-flare {
+  background: radial-gradient(circle, 
+    rgba(245, 158, 11, 0.8) 0%,
+    rgba(239, 68, 68, 0.6) 30%,
+    rgba(139, 92, 246, 0.4) 60%,
+    transparent 100%);
+  animation: flareIntensity 2s ease-in-out infinite alternate;
+}
+
+@keyframes flareIntensity {
+  0% { opacity: 0.6; transform: scale(1); }
+  100% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Smooth transitions */
+* {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--stellar-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--stellar-secondary);
+}
+
+/* Typography */
+.text-gradient {
+  background: linear-gradient(135deg, var(--stellar-primary), var(--stellar-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-solar-gradient {
+  background: linear-gradient(45deg, 
+    #FFFF00 0%,    /* Solar Core */
+    #FFA500 25%,   /* Bright Orange */
+    #FF6B35 50%,   /* Solar Orange */
+    #FF4500 75%,   /* Flame Red */
+    #8B008B 100%   /* Deep Purple */
+  );
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: solarGlow 3s ease-in-out infinite;
+}
+
+.solartales-gradient {
+  background: linear-gradient(45deg, 
+    #FFFF00 0%,    /* Solar Core */
+    #FFA500 25%,   /* Bright Orange */
+    #FF6B35 50%,   /* Solar Orange */
+    #FF4500 75%,   /* Flame Red */
+    #8B008B 100%   /* Deep Purple */
+  );
+}
+
+@keyframes solarGlow {
+  0%, 100% { 
+    background-position: 0% 50%; 
+    filter: brightness(1);
+  }
+  50% { 
+    background-position: 100% 50%; 
+    filter: brightness(1.2);
+  }
+}
+
+/* Loading animations */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-5 {
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-6 {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
