@@ -66,8 +66,8 @@ const predefinedResponses: Record<string, AIResponse> = {
     }
   },
   'tanvir rahman': {
-    answer: "Hi! I'm Tanvir Rahman, the Project Founder & Lead Developer of Solar Tales! I'm also the founder and president of The White Hole. I'm a young passionate student who is very curious about innovation, robotics and sustainability. In the past I've made many projects and led The White Hole to many national glories!",
-    followUp: "Would you like to know more about Solar Tales, The White Hole organization, or my other projects?",
+    answer: "Tanvir Rahman is the founder and lead developer of Solar Tales! He's also the founder and president of The White Hole organization. He's a young, passionate student who is very curious about innovation, robotics, and sustainability. He has created many projects and led The White Hole to many national achievements!",
+    followUp: "Would you like to know more about Solar Tales, The White Hole organization, or his other projects?",
     interestingFact: "Solar Tales was created to make space weather education fun and accessible for kids around the world!",
     recommendation: {
       title: "Learn more about our mission",
@@ -169,6 +169,8 @@ Your role:
 - Be enthusiastic and encouraging about space science
 - Keep responses concise but informative (2-3 sentences max)
 - Always include a follow-up question to encourage further learning
+
+IMPORTANT: You are an AI assistant, NOT Tanvir Rahman. Never claim to be him or speak as if you are him.
 
 About SolarTales:
 - Founded by Tanvir Rahman, a young passionate student interested in innovation, robotics and sustainability
@@ -345,8 +347,8 @@ function generateIntelligentFallback(question: string): AIResponse {
   // Questions about the founder and team
   if (lowerQuestion.includes('tanvir rahman') || lowerQuestion.includes('tanvir') || lowerQuestion.includes('rahman')) {
     return {
-      answer: "Hi! I'm Tanvir Rahman, the Project Founder & Lead Developer of Solar Tales! I'm also the founder and president of The White Hole. I'm a young passionate student who is very curious about innovation, robotics and sustainability. In the past I've made many projects and led The White Hole to many national glories!",
-      followUp: "Would you like to know more about Solar Tales, The White Hole organization, or my other projects?",
+      answer: "Tanvir Rahman is the founder and lead developer of Solar Tales! He's also the founder and president of The White Hole organization. He's a young, passionate student who is very curious about innovation, robotics, and sustainability. He has created many projects and led The White Hole to many national achievements!",
+      followUp: "Would you like to know more about Solar Tales, The White Hole organization, or his other projects?",
       interestingFact: "Solar Tales was created to make space weather education fun and accessible for kids around the world!",
       recommendation: { title: "Learn more about our mission", link: "/about" }
     };
