@@ -64,6 +64,33 @@ const predefinedResponses: Record<string, AIResponse> = {
       title: "Learn more about Space Weather Effects",
       link: "/learn"
     }
+  },
+  'tanvir rahman': {
+    answer: "Hi! I'm Tanvir Rahman, the Project Founder & Lead Developer of Solar Tales! I'm also the founder and president of The White Hole. I'm a young passionate student who is very curious about innovation, robotics and sustainability. In the past I've made many projects and led The White Hole to many national glories!",
+    followUp: "Would you like to know more about Solar Tales, The White Hole organization, or my other projects?",
+    interestingFact: "Solar Tales was created to make space weather education fun and accessible for kids around the world!",
+    recommendation: {
+      title: "Learn more about our mission",
+      link: "/about"
+    }
+  },
+  'founder': {
+    answer: "Solar Tales was founded by Tanvir Rahman, a young passionate student who loves innovation, robotics and sustainability! He's also the founder and president of The White Hole organization, which has achieved many national glories.",
+    followUp: "Want to learn more about the development of Solar Tales or The White Hole's other achievements?",
+    interestingFact: "The idea for Solar Tales came from wanting to make space science as exciting as it really is!",
+    recommendation: {
+      title: "Read our story",
+      link: "/about"
+    }
+  },
+  'white hole': {
+    answer: "The White Hole is an organization founded and led by Tanvir Rahman! It focuses on innovation, robotics, and sustainability projects. The team has earned many national glories through their various projects and initiatives.",
+    followUp: "Would you like to know more about their projects, achievements, or how they're changing the world?",
+    interestingFact: "The White Hole combines science education with real-world innovation to inspire the next generation!",
+    recommendation: {
+      title: "Explore our projects",
+      link: "/about"
+    }
   }
 };
 
@@ -120,7 +147,7 @@ function findBestResponse(question: string): AIResponse | null {
   return null;
 }
 
-// Generate a contextual response using OpenRouter AI
+// Generate a contextual response using OpenRouter AI with fallback
 async function generateAIResponse(question: string, conversationHistory: Message[]): Promise<AIResponse> {
   try {
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -143,24 +170,22 @@ Your role:
 - Keep responses concise but informative (2-3 sentences max)
 - Always include a follow-up question to encourage further learning
 
+About SolarTales:
+- Founded by Tanvir Rahman, a young passionate student interested in innovation, robotics and sustainability
+- Tanvir is also the founder and president of The White Hole organization
+- The White Hole has achieved many national glories through various projects
+- SolarTales was created to make space weather education fun and accessible for kids
+
 Context from conversation:
 ${context}
 
 Current question: ${question}
 
-Please respond with a JSON object containing:
-- answer: Your main response (2-3 sentences, age-appropriate)
-- followUp: A follow-up question to encourage more exploration
-- interestingFact: A fun, kid-friendly space weather fact
-- recommendation: Optional object with {title, link} to suggest a SolarTales page (/learn, /stories, /time-travel, /data)
+Please respond with ONLY a valid JSON object (no markdown, no extra text):
 
-Example format:
-{
-  "answer": "Solar flares are like giant explosions on the Sun!...",
-  "followUp": "Would you like to know how solar flares affect Earth?",
-  "interestingFact": "Solar flares can be as powerful as billions of bombs!",
-  "recommendation": {"title": "Explore Real-Time Space Weather", "link": "/learn"}
-}`;
+{"answer": "Your response here", "followUp": "Your follow-up question", "interestingFact": "Fun fact here", "recommendation": {"title": "Page title", "link": "/page"}}
+
+Available pages: /learn, /stories, /time-travel, /data`;
 
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -171,7 +196,7 @@ Example format:
         'X-Title': 'SolarTales - Ask AI'
       },
       body: JSON.stringify({
-        model: 'anthropic/claude-3.5-sonnet',
+        model: 'meta-llama/llama-3.2-3b-instruct:free', // Use free model
         messages: [
           {
             role: 'system',
@@ -188,6 +213,7 @@ Example format:
     });
 
     if (!response.ok) {
+      // If OpenRouter fails, throw error to trigger fallback
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
 
@@ -198,31 +224,164 @@ Example format:
       throw new Error('No response from AI');
     }
 
-    // Try to parse JSON response
+    // Try to parse JSON response with better error handling
     try {
-      const parsedResponse = JSON.parse(aiResponse);
+      // Clean the response - remove any extra whitespace, code blocks, etc.
+      let cleanedResponse = aiResponse.trim();
+      
+      // Remove markdown code blocks if present
+      if (cleanedResponse.startsWith('```json') && cleanedResponse.endsWith('```')) {
+        cleanedResponse = cleanedResponse.slice(7, -3).trim();
+      } else if (cleanedResponse.startsWith('```') && cleanedResponse.endsWith('```')) {
+        cleanedResponse = cleanedResponse.slice(3, -3).trim();
+      }
+      
+      // Try to find JSON within the response
+      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedResponse = jsonMatch[0];
+      }
+      
+      const parsedResponse = JSON.parse(cleanedResponse);
+      
+      // Validate that we have the expected structure
+      if (parsedResponse && typeof parsedResponse === 'object') {
+        return {
+          answer: parsedResponse.answer || "I'm here to help you learn about space weather!",
+          followUp: parsedResponse.followUp || followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)],
+          interestingFact: parsedResponse.interestingFact || interestingFacts[Math.floor(Math.random() * interestingFacts.length)],
+          recommendation: parsedResponse.recommendation
+        };
+      } else {
+        throw new Error('Invalid JSON structure');
+      }
+    } catch (parseError) {
+      console.log('JSON parsing failed, using response as text:', parseError);
+      // If not JSON, use the response as answer but clean it up
+      let cleanAnswer = aiResponse.trim();
+      
+      // If it looks like broken JSON, extract just the answer part
+      if (cleanAnswer.includes('"answer"')) {
+        const answerMatch = cleanAnswer.match(/"answer":\s*"([^"]+)"/);
+        if (answerMatch) {
+          cleanAnswer = answerMatch[1];
+        }
+      }
+      
       return {
-        answer: parsedResponse.answer || aiResponse,
-        followUp: parsedResponse.followUp,
-        interestingFact: parsedResponse.interestingFact,
-        recommendation: parsedResponse.recommendation
-      };
-    } catch {
-      // If not JSON, use the response as answer
-      return {
-        answer: aiResponse,
+        answer: cleanAnswer,
         followUp: followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)],
         interestingFact: interestingFacts[Math.floor(Math.random() * interestingFacts.length)]
       };
     }
 
   } catch (error) {
-    console.error('Error generating AI response:', error);
-    throw error;
+    console.error('OpenRouter failed, using intelligent fallback:', error);
+    
+    // Intelligent fallback based on question content
+    return generateIntelligentFallback(question);
   }
 }
 
+// Intelligent fallback response generator
+function generateIntelligentFallback(question: string): AIResponse {
+  const lowerQuestion = question.toLowerCase();
+  
+  // Space weather topics
+  if (lowerQuestion.includes('solar flare') || lowerQuestion.includes('flare')) {
+    return {
+      answer: "Solar flares are like giant explosions on the Sun! They happen when magnetic energy stored in the Sun's atmosphere suddenly gets released, shooting particles and energy into space at incredible speeds.",
+      followUp: "Would you like to know how solar flares affect Earth or how scientists detect them?",
+      interestingFact: "The most powerful solar flare ever recorded was in 2003 and was so strong it broke the measuring instruments!",
+      recommendation: { title: "Explore Real-Time Space Weather", link: "/learn" }
+    };
+  }
+  
+  if (lowerQuestion.includes('aurora') || lowerQuestion.includes('northern lights') || lowerQuestion.includes('southern lights')) {
+    return {
+      answer: "Auroras are like nature's own light show! They happen when tiny particles from the Sun crash into Earth's magnetic shield and light up our atmosphere in beautiful green, blue, and sometimes red colors.",
+      followUp: "Want to learn about aurora colors, where to see them, or what causes different shapes?",
+      interestingFact: "Auroras occur about 60-250 miles above Earth - that's higher than where airplanes fly!",
+      recommendation: { title: "See Aurora Stories", link: "/time-travel" }
+    };
+  }
+  
+  if (lowerQuestion.includes('storm') || lowerQuestion.includes('geomagnetic')) {
+    return {
+      answer: "Geomagnetic storms happen when Earth's magnetic field gets shaken up by strong solar winds! It's like Earth has an invisible bubble around it that sometimes gets pushed and squeezed by space weather.",
+      followUp: "Which interests you more - how storms affect technology or how they create beautiful auroras?",
+      interestingFact: "During strong geomagnetic storms, auroras can be seen as far south as Florida and Texas!",
+      recommendation: { title: "Check Space Weather Stories", link: "/stories" }
+    };
+  }
+  
+  if (lowerQuestion.includes('sun') || lowerQuestion.includes('solar')) {
+    return {
+      answer: "The Sun is like a giant ball of super-hot gas that's constantly bubbling and exploding! It sends energy and particles streaming through space that create all kinds of amazing space weather phenomena.",
+      followUp: "What would you like to know about - solar flares, solar wind, or how the Sun affects Earth?",
+      interestingFact: "The Sun is so powerful it could fit over 1 million Earths inside it!",
+      recommendation: { title: "Learn About Solar Activity", link: "/learn" }
+    };
+  }
+  
+  if (lowerQuestion.includes('satellite') || lowerQuestion.includes('space station') || lowerQuestion.includes('astronaut')) {
+    return {
+      answer: "Space weather can affect satellites and astronauts! Solar storms can damage satellite electronics and create dangerous radiation that astronauts need to hide from in special shielded areas.",
+      followUp: "Would you like to know more about how astronauts stay safe or how satellites protect themselves?",
+      interestingFact: "During big solar storms, astronauts on the International Space Station take shelter in the most protected part of the station!",
+      recommendation: { title: "Explore Space Weather Effects", link: "/data" }
+    };
+  }
+  
+  if (lowerQuestion.includes('earth') || lowerQuestion.includes('planet') || lowerQuestion.includes('magnetic')) {
+    return {
+      answer: "Earth has an invisible magnetic shield called the magnetosphere that protects us from harmful space radiation! It's like a super-strong bubble that deflects most dangerous particles from the Sun.",
+      followUp: "Want to learn about how this magnetic shield works or what happens when it gets overwhelmed?",
+      interestingFact: "Earth's magnetic field is generated by molten iron swirling around in our planet's core!",
+      recommendation: { title: "See How Earth is Protected", link: "/learn" }
+    };
+  }
+  
+  // Questions about the founder and team
+  if (lowerQuestion.includes('tanvir rahman') || lowerQuestion.includes('tanvir') || lowerQuestion.includes('rahman')) {
+    return {
+      answer: "Hi! I'm Tanvir Rahman, the Project Founder & Lead Developer of Solar Tales! I'm also the founder and president of The White Hole. I'm a young passionate student who is very curious about innovation, robotics and sustainability. In the past I've made many projects and led The White Hole to many national glories!",
+      followUp: "Would you like to know more about Solar Tales, The White Hole organization, or my other projects?",
+      interestingFact: "Solar Tales was created to make space weather education fun and accessible for kids around the world!",
+      recommendation: { title: "Learn more about our mission", link: "/about" }
+    };
+  }
+  
+  if (lowerQuestion.includes('founder') || lowerQuestion.includes('creator') || lowerQuestion.includes('who made') || lowerQuestion.includes('who created')) {
+    return {
+      answer: "Solar Tales was founded by Tanvir Rahman, a young passionate student who loves innovation, robotics and sustainability! He's also the founder and president of The White Hole organization, which has achieved many national glories.",
+      followUp: "Want to learn more about the development of Solar Tales or The White Hole's other achievements?",
+      interestingFact: "The idea for Solar Tales came from wanting to make space science as exciting as it really is!",
+      recommendation: { title: "Read our story", link: "/about" }
+    };
+  }
+  
+  if (lowerQuestion.includes('white hole') || lowerQuestion.includes('organization')) {
+    return {
+      answer: "The White Hole is an organization founded and led by Tanvir Rahman! It focuses on innovation, robotics, and sustainability projects. The team has earned many national glories through their various projects and initiatives.",
+      followUp: "Would you like to know more about their projects, achievements, or how they're changing the world?",
+      interestingFact: "The White Hole combines science education with real-world innovation to inspire the next generation!",
+      recommendation: { title: "Explore our projects", link: "/about" }
+    };
+  }
+  
+  // General space weather response
+  return {
+    answer: "Space weather is all about the amazing things that happen when energy and particles from our Sun travel through space! This includes solar flares, beautiful auroras, and invisible magnetic storms that can affect technology on Earth.",
+    followUp: "What aspect of space weather interests you most - solar flares, auroras, or how it affects Earth?",
+    interestingFact: "Space weather happens 93 million miles away from Earth, but it can still affect us here!",
+    recommendation: { title: "Start Your Space Weather Journey", link: "/learn" }
+  };
+}
+
 export async function POST(request: NextRequest) {
+  let question: string = '';
+  
   try {
     // Rate limiting
     const clientId = getClientIdentifier(request);
@@ -245,7 +404,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { question, conversationHistory = [] } = await request.json();
+    const { question: requestQuestion, conversationHistory = [] } = await request.json();
+    question = requestQuestion; // Store in outer scope
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json(
@@ -280,9 +440,14 @@ export async function POST(request: NextRequest) {
     // First try predefined responses for common questions
     let response = findBestResponse(question);
 
-    // If no predefined response, generate with AI
+    // If no predefined response, generate with AI (with intelligent fallback)
     if (!response) {
-      response = await generateAIResponse(question, conversationHistory);
+      try {
+        response = await generateAIResponse(question, conversationHistory);
+      } catch (error) {
+        console.error('AI generation failed, using intelligent fallback:', error);
+        response = generateIntelligentFallback(question);
+      }
     }
 
     // Add random interesting fact if not provided
@@ -309,16 +474,26 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in ask-ai API:', error);
     
-    // Fallback response
+    // More detailed error logging for development
+    if (error instanceof Error) {
+      console.error('Error message:', error.message);
+      console.error('Error stack:', error.stack);
+    }
+    
+    // Check if API key is missing
+    const apiKey = process.env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+      console.error('OPENROUTER_API_KEY is not configured');
+    }
+    
+    // Always use intelligent fallback - no debug messages shown to users
+    const fallbackResponse = generateIntelligentFallback(
+      question || 'space weather'
+    );
+    
     return NextResponse.json({
       success: true,
-      answer: "That's a great question about space weather! Space weather includes all the amazing things that happen when energy and particles from our Sun travel through space and interact with Earth. It includes solar flares, coronal mass ejections, and the beautiful auroras!",
-      followUp: "What specific part of space weather interests you most?",
-      interestingFact: interestingFacts[Math.floor(Math.random() * interestingFacts.length)],
-      recommendation: {
-        title: "Explore our Space Weather Dashboard",
-        link: "/learn"
-      }
+      ...fallbackResponse
     });
   }
 }
