@@ -4,7 +4,7 @@
 
 > **Transforming complex space weather data into engaging, educational narratives through AI-powered storytelling and immersive 3D visualizations.**
 
-[![Live Demo](https://img.shields.io/badge/Live-Demo-blue)](https://solartales.app)  
+[![Live Demo](https://img.shields.io/badge/Live-Demo-blue)](https://solartales.vercel.app/)  
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.txt)
 
 ---
