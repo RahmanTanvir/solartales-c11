@@ -9,7 +9,7 @@ const STATIC_ASSETS = [
   '/data',
   '/manifest.json',
   '/offline.html',
-  // Add your static assets here
+  // Add static assets here
 ];
 
 // Install event - cache static assets
