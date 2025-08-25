@@ -40,21 +40,24 @@ The Space Weather Stories Platform revolutionizes space weather education by:
 - Educational fact verification and integration
 
 ### 🎨 **User Experience**
-- Character-based storytelling with diverse narrators (Astronaut Sumaiya Subha, Pilot Captain Tanvir Rahman, Farmer Wasif Ahmad, Power Grid Operator Ibrahim Ilham, Aurora Hunter Saad Wasit, Radio Operator Arman Khan)
-- Age-appropriate content with three reading levels (Beginner 8-10, Intermediate 11-13, Advanced 14-17)
+- **Character-based storytelling** with diverse narrators (Astronaut, Pilot, Farmer, Power Grid Operator, Aurora Hunter, Radio Operator)
+- **Story Size Selection** - Choose your preferred reading length: Short (2-3 min), Medium (4-6 min), or Long (7-10 min)
+- **Age-appropriate content** with three reading levels (Beginner 8-10, Intermediate 11-13, Advanced 14-17)
 - Interactive 3D solar system with WebGL/Three.js
 - Responsive design optimized for mobile and desktop
 - Dark/space theme with accessibility considerations
 - Web Audio API for immersive space weather sounds and story narration
 
 ### 🤖 **AI Innovation**
+- **Real Time Mode Default** - Stories automatically generated from current ACTUAL space weather conditions
+- **8 Distinct Story Modes** - Real Time, Extreme Storm Simulator, Regional Focus, Custom Scenario Creator, Career Day, Seasonal Storyteller, Technology Timeline, and Historical Events
+- **Advanced Story Customization** - Choose story length, mood, and experience type for personalized narratives
 - Context-aware story generation based on current space weather conditions
-- Character-specific narratives from diverse perspectives (astronauts, pilots, farmers, power grid operators, general public, radio operators)
+- Character-specific narratives from diverse perspectives
 - Educational content weaving with age-appropriate language across three reading levels
-- Interactive AI assistant - ask anything about space weather and get instant answers with follow-up suggestions
-- Access to space weather information not yet available on the web through real-time data integration
-- Natural language interactions for deeper understanding with educational fact integration
-- Full audio narration with speech synthesis for accessibility and hands-free learning
+- Interactive AI assistant with instant answers and follow-up suggestions
+- Access to real-time space weather information not yet available elsewhere
+- Full audio narration with speech synthesis for accessibility
 
 ---
 
@@ -66,7 +69,7 @@ The Space Weather Stories Platform revolutionizes space weather education by:
 | **Styling** | Tailwind CSS, Framer Motion | Responsive design and animations |
 | **3D Graphics** | Three.js, React Three Fiber | Solar system visualization |
 | **Database** | Supabase (PostgreSQL) | Real-time data storage |
-| **AI/ML** | Custom prompts | Story generation and content creation |
+| **AI/ML** | OpenRouter API, Custom prompts | Story generation and content creation |
 | **APIs** | NASA DONKI, NOAA SWPC | Space weather data sources |
 | **Audio** | Web Audio API | Immersive space weather sounds |
 | **PWA** | Service Workers, Web App Manifest | Offline functionality |
@@ -98,15 +101,12 @@ The Space Weather Stories Platform revolutionizes space weather education by:
 ## 🌟 **Innovation Highlights**
 
 ### **AI-Driven Educational Content**
-- First-of-its-kind real-time space weather storytelling
-- **Historic Event Recreation:** Time travel through space weather history with AI-generated narratives
-- Context-aware narrative generation based on current solar activity
-- Character-based perspectives for diverse learning styles
+- **Dynamic Story Length Control** - Choose Short (200-300 words), Medium (400-600 words), or Long (700-1000 words) for optimal engagement
+- **Historic Event Recreation** - Time travel through space weather history with AI-generated narratives
+- **Character Perspectives** - Stories from astronauts (Sumaiya Subha), pilots (Captain Tanvir Rahman), farmers (Wasif Ahmad), power grid operators (Ibrahim Ilham), aurora hunters (Saad Wasit), and radio operators (Arman Khan)
 - Automatic educational fact integration and verification
-- Ask any space weather question and receive instant, educational answers with our Interactive AI Assistant
-- AI suggests related questions and interesting facts to deepen learning
-- Get answers to questions about current space events not yet documented online
-- Speak questions naturally and listen to AI responses for accessibility
+- Natural language interactions for deeper understanding
+- Voice-enabled questions and responses for hands-free learning
 
 ### **Advanced Data Visualization**
 - Real-time 3D solar system with space weather effects
