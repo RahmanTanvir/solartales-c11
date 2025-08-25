@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Rocket, Zap, Star, Waves, Users, Mic, MicOff, Play, Pause, Volume2, Plane, Tractor, Camera, MessageCircle, Sparkles } from 'lucide-react';
+import { Rocket, Zap, Star, Waves, Users, Mic, MicOff, Play, Pause, Volume2, Plane, Tractor, Camera, MessageCircle, Sparkles, MapPin, Settings, History, Briefcase, Calendar, Clock } from 'lucide-react';
 import { useRealTimeSpaceWeather } from '@/hooks/useRealTimeSpaceWeather';
 import Navigation from '@/components/Navigation';
 
@@ -15,9 +15,31 @@ interface Character {
   greeting: string;
 }
 
+interface StoryMood {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  color: string;
+  parameters?: {
+    intensity?: 'G1' | 'G2' | 'G3' | 'G4' | 'G5';
+    region?: 'equator' | 'mid-latitudes' | 'polar';
+    season?: 'spring' | 'summer' | 'autumn' | 'winter';
+    era?: '1850s' | '1950s' | '1990s' | '2025';
+    profession?: 'emergency' | 'satellite' | 'airline' | 'maritime' | 'research';
+    historicalEvent?: 'carrington' | 'quebec' | 'halloween' | 'bastille';
+    flareClass?: 'C' | 'M' | 'X';
+    cmeSpeed?: 'slow' | 'medium' | 'fast';
+    infrastructure?: 'power' | 'telecom' | 'transport' | 'agriculture';
+  };
+}
+
 export default function StoriesPageClient() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(null);
   const [selectedAgeGroup, setSelectedAgeGroup] = useState<'8-10' | '11-13' | '14-17'>('11-13');
+  const [selectedStorySize, setSelectedStorySize] = useState<'short' | 'medium' | 'long'>('medium');
+  const [selectedMood, setSelectedMood] = useState<StoryMood | null>(null);
+  const [customParameters, setCustomParameters] = useState<StoryMood['parameters']>({});
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStory, setCurrentStory] = useState<string>('');
   const [showStory, setShowStory] = useState(false);
@@ -79,6 +101,73 @@ export default function StoriesPageClient() {
     }
   ];
 
+  const storyMoods: StoryMood[] = [
+    {
+      id: 'real_time',
+      name: 'Real Time Mode',
+      icon: <Waves className="w-8 h-8" />,
+      description: 'Experience stories based on current ACTUAL space weather conditions happening right now! Watch real solar flares, geomagnetic storms, and space weather events unfold in real-time.',
+      color: 'from-emerald-500 via-green-500 to-teal-500'
+    },
+    {
+      id: 'extreme_storm',
+      name: 'Extreme Storm Simulator',
+      icon: <Zap className="w-8 h-8" />,
+      description: 'Pick an intensity (G1 mild through G5 extreme) to experience a worst-case scenario. Watch your farmer\'s GPS fail in a G3 storm, reroute airline flights at G4, and scramble power grids at G5.',
+      color: 'from-red-500 via-orange-500 to-yellow-500'
+    },
+    {
+      id: 'regional_focus',
+      name: 'Regional Focus',
+      icon: <MapPin className="w-8 h-8" />,
+      description: 'Select a latitude band (Equator, Mid-Latitudes, Polar Regions) to see how space weather impacts differ by location—aurora sightings in Norway, GPS errors in Bangladesh, HF radio blackouts near the equator.',
+      color: 'from-blue-500 via-cyan-500 to-teal-500'
+    },
+    {
+      id: 'custom_scenario',
+      name: 'Custom Scenario Creator',
+      icon: <Settings className="w-8 h-8" />,
+      description: 'Set parameters—flare class, CME speed, season of year, local infrastructure type—and generate a bespoke narrative that highlights exactly how those variables interact.',
+      color: 'from-purple-500 via-pink-500 to-rose-500'
+    },
+    {
+      id: 'career_day',
+      name: 'Career Day Mode',
+      icon: <Briefcase className="w-8 h-8" />,
+      description: 'Focus on how different professions deal with space weather—emergency responders, satellite operators, airline dispatchers, maritime navigation, and research scientists.',
+      color: 'from-green-500 via-emerald-500 to-teal-500'
+    },
+    {
+      id: 'seasonal_storyteller',
+      name: 'Seasonal Storyteller',
+      icon: <Calendar className="w-8 h-8" />,
+      description: 'Stories that highlight how space weather impacts change by season—equinox effects, winter vs summer aurora visibility, seasonal atmospheric changes.',
+      color: 'from-indigo-500 via-blue-500 to-cyan-500'
+    },
+    {
+      id: 'technology_timeline',
+      name: 'Technology Timeline',
+      icon: <Clock className="w-8 h-8" />,
+      description: 'See how the same space weather event would affect different eras—1850s telegraph systems vs 1950s radio vs 1990s satellites vs 2025 smart grids.',
+      color: 'from-amber-500 via-orange-500 to-red-500'
+    },
+    {
+      id: 'historical_events',
+      name: 'Historical Event Recreation',
+      icon: <History className="w-8 h-8" />,
+      description: 'Experience famous space weather events like the 1859 Carrington Event, 1989 Quebec Blackout, 2003 Halloween Storms, or 2012 near-miss event.',
+      color: 'from-violet-500 via-purple-500 to-indigo-500'
+    }
+  ];
+
+  // Set Real Time Mode as default when component mounts
+  useEffect(() => {
+    const realTimeMood = storyMoods.find(mood => mood.id === 'real_time');
+    if (realTimeMood) {
+      setSelectedMood(realTimeMood);
+    }
+  }, []);
+
   const generateStory = async (character: Character) => {
     setIsGenerating(true);
     setShowStory(false);
@@ -92,6 +181,9 @@ export default function StoriesPageClient() {
         body: JSON.stringify({
           character: character.id,
           ageGroup: selectedAgeGroup,
+          storySize: selectedStorySize,
+          mood: selectedMood?.id || 'default',
+          moodParameters: customParameters,
           eventType: mostSignificantEvent?.eventType || 'solar_flare',
           intensity: mostSignificantEvent?.severityLevel || 'moderate',
           eventTime: mostSignificantEvent?.eventTime || new Date().toISOString(),
@@ -335,6 +427,294 @@ export default function StoriesPageClient() {
                     </button>
                   ))}
                 </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Story Size Selection */}
+          {!selectedCharacter && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-8"
+            >
+              <div className="glass bg-gradient-to-br from-emerald-800/30 to-teal-800/30 p-6 rounded-3xl backdrop-blur-sm max-w-4xl mx-auto">
+                <h3 className="text-2xl font-bold text-center mb-6 text-white">
+                  Choose Your Story Size
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[
+                    {
+                      id: 'short',
+                      name: 'Short',
+                      description: 'Quick & punchy stories',
+                      details: '2-3 minutes read',
+                      icon: <Zap className="w-6 h-6" />,
+                      color: 'from-yellow-500 to-orange-500'
+                    },
+                    {
+                      id: 'medium',
+                      name: 'Medium',
+                      description: 'Balanced storytelling',
+                      details: '4-6 minutes read',
+                      icon: <Star className="w-6 h-6" />,
+                      color: 'from-blue-500 to-indigo-500'
+                    },
+                    {
+                      id: 'long',
+                      name: 'Long',
+                      description: 'Immersive adventures',
+                      details: '7-10 minutes read',
+                      icon: <Waves className="w-6 h-6" />,
+                      color: 'from-purple-500 to-pink-500'
+                    }
+                  ].map((size) => (
+                    <button
+                      key={size.id}
+                      onClick={() => setSelectedStorySize(size.id as any)}
+                      className={`p-4 rounded-xl transition-all duration-300 text-center border group hover:scale-105 ${
+                        selectedStorySize === size.id
+                          ? `bg-gradient-to-br ${size.color}/20 border-white/50 shadow-lg`
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex flex-col items-center space-y-2">
+                        <div className={`p-3 rounded-lg bg-gradient-to-br ${size.color} text-white`}>
+                          {size.icon}
+                        </div>
+                        <div>
+                          <h4 className="font-bold text-white text-lg">{size.name}</h4>
+                          <p className="text-white/80 text-sm">{size.description}</p>
+                          <p className="text-white/60 text-xs mt-1">{size.details}</p>
+                        </div>
+                      </div>
+                      {selectedStorySize === size.id && (
+                        <div className="absolute top-2 right-2">
+                          <div className="w-3 h-3 bg-white rounded-full"></div>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Mood Selection */}
+          {!selectedCharacter && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="mb-12"
+            >
+              <div className="glass bg-gradient-to-br from-indigo-800/30 to-purple-800/30 p-8 rounded-3xl backdrop-blur-sm max-w-6xl mx-auto">
+                <h3 className="text-2xl font-bold text-center mb-6 text-white">
+                  Choose Your Story Experience
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {storyMoods.map((mood) => (
+                    <button
+                      key={mood.id}
+                      onClick={() => setSelectedMood(mood)}
+                      className={`p-4 rounded-xl transition-all duration-300 text-left border group hover:scale-105 ${
+                        selectedMood?.id === mood.id
+                          ? `bg-gradient-to-br ${mood.color}/20 border-white/50 shadow-lg shadow-current/20`
+                          : 'bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20'
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3 mb-2">
+                        <div className={`p-2 rounded-lg bg-gradient-to-br ${mood.color} text-white`}>
+                          {mood.icon}
+                        </div>
+                        <div className="font-semibold text-white text-sm">{mood.name}</div>
+                      </div>
+                      <div className="text-xs text-gray-300 leading-relaxed">{mood.description}</div>
+                      {selectedMood?.id === mood.id && (
+                        <div className="mt-3 flex items-center space-x-1 text-white">
+                          <Sparkles className="w-4 h-4" />
+                          <span className="text-xs font-medium">Selected</span>
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Mood Parameters */}
+                {selectedMood && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="mt-6 p-6 bg-white/10 rounded-xl border border-white/20"
+                  >
+                    <h4 className="text-lg font-bold text-white mb-4">Customize Your {selectedMood.name}</h4>
+                    
+                    {selectedMood.id === 'extreme_storm' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Storm Intensity</label>
+                          <select
+                            value={customParameters?.intensity || 'G3'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, intensity: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="G1">G1 - Minor Storm</option>
+                            <option value="G2">G2 - Moderate Storm</option>
+                            <option value="G3">G3 - Strong Storm</option>
+                            <option value="G4">G4 - Severe Storm</option>
+                            <option value="G5">G5 - Extreme Storm</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Infrastructure Focus</label>
+                          <select
+                            value={customParameters?.infrastructure || 'power'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, infrastructure: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="power">Power Grid</option>
+                            <option value="telecom">Telecommunications</option>
+                            <option value="transport">Transportation</option>
+                            <option value="agriculture">Agriculture</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMood.id === 'regional_focus' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Latitude Region</label>
+                          <select
+                            value={customParameters?.region || 'mid-latitudes'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, region: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="equator">Equatorial Region</option>
+                            <option value="mid-latitudes">Mid-Latitudes</option>
+                            <option value="polar">Polar Regions</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMood.id === 'custom_scenario' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Flare Class</label>
+                          <select
+                            value={customParameters?.flareClass || 'M'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, flareClass: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="C">C-Class (Minor)</option>
+                            <option value="M">M-Class (Moderate)</option>
+                            <option value="X">X-Class (Major)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">CME Speed</label>
+                          <select
+                            value={customParameters?.cmeSpeed || 'medium'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, cmeSpeed: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="slow">Slow (300-500 km/s)</option>
+                            <option value="medium">Medium (500-1000 km/s)</option>
+                            <option value="fast">Fast (1000+ km/s)</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Season</label>
+                          <select
+                            value={customParameters?.season || 'autumn'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, season: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="spring">Spring (Equinox)</option>
+                            <option value="summer">Summer</option>
+                            <option value="autumn">Autumn (Equinox)</option>
+                            <option value="winter">Winter</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMood.id === 'career_day' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Profession Focus</label>
+                          <select
+                            value={customParameters?.profession || 'emergency'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, profession: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="emergency">Emergency Responders</option>
+                            <option value="satellite">Satellite Operators</option>
+                            <option value="airline">Airline Dispatchers</option>
+                            <option value="maritime">Maritime Navigation</option>
+                            <option value="research">Research Scientists</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMood.id === 'seasonal_storyteller' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Season Focus</label>
+                          <select
+                            value={customParameters?.season || 'winter'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, season: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="spring">Spring (Equinox Effects)</option>
+                            <option value="summer">Summer (24hr Daylight)</option>
+                            <option value="autumn">Autumn (Equinox Storm Season)</option>
+                            <option value="winter">Winter (Peak Aurora Season)</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMood.id === 'technology_timeline' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Time Period</label>
+                          <select
+                            value={customParameters?.era || '2025'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, era: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="1850s">1850s - Telegraph Era</option>
+                            <option value="1950s">1950s - Radio Era</option>
+                            <option value="1990s">1990s - Early Satellite Era</option>
+                            <option value="2025">2025 - Smart Grid Era</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {selectedMood.id === 'historical_events' && (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-white mb-2">Historical Event</label>
+                          <select
+                            value={customParameters?.historicalEvent || 'carrington'}
+                            onChange={(e) => setCustomParameters(prev => ({ ...prev, historicalEvent: e.target.value as any }))}
+                            className="w-full p-2 rounded-lg bg-gray-800 text-white border border-gray-600"
+                          >
+                            <option value="carrington">1859 Carrington Event</option>
+                            <option value="quebec">1989 Quebec Blackout</option>
+                            <option value="halloween">2003 Halloween Storms</option>
+                            <option value="bastille">2000 Bastille Day Event</option>
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+                )}
               </div>
             </motion.div>
           )}

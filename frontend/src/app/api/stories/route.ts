@@ -7,6 +7,19 @@ import { supabase } from '@/lib/supabase';
 interface StoryGenerationRequest {
   character: string;
   ageGroup: string;
+  storySize?: 'short' | 'medium' | 'long';
+  mood?: string;
+  moodParameters?: {
+    intensity?: 'G1' | 'G2' | 'G3' | 'G4' | 'G5';
+    region?: 'equator' | 'mid-latitudes' | 'polar';
+    season?: 'spring' | 'summer' | 'autumn' | 'winter';
+    era?: '1850s' | '1950s' | '1990s' | '2025';
+    profession?: 'emergency' | 'satellite' | 'airline' | 'maritime' | 'research';
+    historicalEvent?: 'carrington' | 'quebec' | 'halloween' | 'bastille';
+    flareClass?: 'C' | 'M' | 'X';
+    cmeSpeed?: 'slow' | 'medium' | 'fast';
+    infrastructure?: 'power' | 'telecom' | 'transport' | 'agriculture';
+  };
   eventType?: string;
   intensity?: string;
   description?: string;
@@ -48,10 +61,55 @@ const getAgePrompt = (ageGroup: string): string => {
   return agePrompts[ageGroup] || agePrompts['11-13'];
 };
 
+// Story size prompts
+const getStorySizePrompt = (storySize: string): string => {
+  const sizePrompts: Record<string, string> = {
+    'short': "Write a concise, focused story of 200-300 words (2-3 minute read). Keep it punchy and impactful, focusing on the most dramatic moment of the space weather event.",
+    'medium': "Write a detailed story of 400-600 words (4-6 minute read). Include character development, multiple scenes, and educational elements while maintaining engagement.",
+    'long': "Write an immersive, comprehensive story of 700-1000 words (7-10 minute read). Include rich descriptions, multiple perspectives, detailed scientific explanations, and a complete narrative arc with buildup, climax, and resolution."
+  };
+  return sizePrompts[storySize] || sizePrompts['medium'];
+};
+
+// Mood-specific prompts
+const getMoodPrompt = (mood: string, parameters: any = {}): string => {
+  const moodPrompts: Record<string, string> = {
+    real_time: `Create a story based on ACTUAL current space weather conditions. Use real-time data to make the story authentic and immediate. Emphasize that this is happening RIGHT NOW in the real world. Include current solar activity levels, magnetic field readings, and any ongoing space weather events.`,
+    
+    extreme_storm: `Focus on a ${parameters.intensity || 'G3'} geomagnetic storm scenario. Emphasize the worst-case impacts on ${parameters.infrastructure || 'power grid'} systems. Show how professionals respond to extreme conditions and protect critical infrastructure.`,
+    
+    regional_focus: `Set the story specifically in the ${parameters.region || 'mid-latitudes'} region. Highlight how space weather effects differ by geographic location. Include local phenomena like aurora visibility, GPS accuracy variations, and regional communication impacts.`,
+    
+    custom_scenario: `Create a scenario with specific parameters: ${parameters.flareClass || 'M'}-class solar flare, ${parameters.cmeSpeed || 'medium'} speed CME, during ${parameters.season || 'autumn'} season. Show how these exact conditions interact to create unique space weather effects.`,
+    
+    career_day: `Focus on the ${parameters.profession || 'emergency'} profession's perspective. Show detailed day-in-the-life operations, professional protocols, teamwork, and how space weather training helps protect people and infrastructure.`,
+    
+    seasonal_storyteller: `Set during ${parameters.season || 'winter'} season. Emphasize seasonal space weather patterns, how atmospheric conditions change with seasons, equinox effects if spring/autumn, and seasonal aurora visibility patterns.`,
+    
+    technology_timeline: `Set the story in ${parameters.era || '2025'}. Show how the same space weather event would affect the technology of that era. Compare impacts on period-appropriate infrastructure and communication systems.`,
+    
+    historical_events: `Recreate the famous ${parameters.historicalEvent || 'carrington'} space weather event. Use historical context, real impacts that occurred, and show how people of that era experienced and understood the phenomenon.`
+  };
+  
+  return moodPrompts[mood] || '';
+};
+
+// Historical event details
+const getHistoricalEventDetails = (event: string): string => {
+  const eventDetails: Record<string, string> = {
+    carrington: "The 1859 Carrington Event was the most powerful geomagnetic storm in recorded history. Telegraph systems worldwide failed, with some operators receiving electric shocks. Telegraph lines sparked and caught fire. Aurora were visible as far south as the Caribbean.",
+    quebec: "The March 1989 geomagnetic storm caused a 9-hour blackout in Quebec, Canada, affecting 6 million people. The storm damaged transformers and caused $2 billion in damages. It showed how vulnerable modern power grids are to space weather.",
+    halloween: "The October-November 2003 Halloween Storms were a series of solar flares and CMEs that disrupted satellites, airlines, and power grids worldwide. Multiple X-class flares occurred, creating widespread aurora and technology failures.",
+    bastille: "The July 14, 2000 Bastille Day Event was a major solar storm that occurred on France's national holiday. It caused significant satellite anomalies and beautiful aurora displays across northern regions."
+  };
+  
+  return eventDetails[event] || '';
+};
+
 export async function POST(request: NextRequest) {
   try {
     const body: StoryGenerationRequest = await request.json();
-    const { character, ageGroup, eventType, intensity, description, impacts } = body;
+    const { character, ageGroup, storySize, mood, moodParameters, eventType, intensity, description, impacts } = body;
 
     // Validate required fields
     if (!character || !ageGroup) {
@@ -84,13 +142,21 @@ export async function POST(request: NextRequest) {
     const uniqueId = Math.random().toString(36).substring(2, 9);
 
     // Generate the story using OpenAI
+    const moodPrompt = mood ? getMoodPrompt(mood, moodParameters) : '';
+    const historicalDetails = moodParameters?.historicalEvent ? getHistoricalEventDetails(moodParameters.historicalEvent) : '';
+    const storySizePrompt = getStorySizePrompt(storySize || 'medium');
+    
     const systemPrompt = `You are an expert storyteller and science educator creating engaging space weather stories for children. 
     
     ${getCharacterPrompt(character)}
     
+    ${moodPrompt ? `Special Story Mode: ${moodPrompt}` : ''}
+    
+    ${historicalDetails ? `Historical Context: ${historicalDetails}` : ''}
+    
     Guidelines:
     - ${getAgePrompt(ageGroup)}
-    - Write a detailed story of 400-600 words
+    - ${storySizePrompt}
     - Include 4-5 scientific concepts with clear explanations
     - Make the story exciting and engaging while being scientifically accurate
     - Include sensory details (what you see, hear, feel)
@@ -115,6 +181,8 @@ export async function POST(request: NextRequest) {
     
     Character Perspective: ${character}
     Target Age: ${ageGroup}
+    ${mood ? `Story Mode: ${mood}` : ''}
+    ${moodParameters ? `Special Parameters: ${JSON.stringify(moodParameters)}` : ''}
     
     Story Variation: Focus on the ${randomVariation}
     Setting Time: ${randomTime}
@@ -268,7 +336,7 @@ export async function GET(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { characters, count = 5 } = body;
+    const { characters, count = 5, storySize = 'medium' } = body;
 
     if (!characters || !Array.isArray(characters)) {
       return NextResponse.json(
@@ -313,13 +381,15 @@ export async function PUT(request: NextRequest) {
           };
 
           // Generate story
+          const storySizePrompt = getStorySizePrompt(storySize || 'medium');
+          
           const systemPrompt = `You are an expert storyteller and science educator creating engaging space weather stories for children. 
           
           ${getCharacterPrompt(character)}
           
           Guidelines:
           - ${getAgePrompt(ageGroup)}
-          - Write a detailed story of 400-600 words
+          - ${storySizePrompt}
           - Include 4-5 scientific concepts with clear explanations
           - Make the story exciting and engaging while being scientifically accurate
           - Include sensory details (what you see, hear, feel)
