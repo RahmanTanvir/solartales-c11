@@ -94,7 +94,6 @@ const predefinedResponses: Record<string, AIResponse> = {
   }
 };
 
-// Interesting facts pool
 const interestingFacts = [
   "The Sun's magnetic field is 2,500 times stronger than Earth's!",
   "Solar particles can travel from the Sun to Earth in just 8 minutes!",
@@ -106,7 +105,6 @@ const interestingFacts = [
   "The International Space Station sometimes has to take shelter during solar storms!"
 ];
 
-// Follow-up questions
 const followUpQuestions = [
   "What else would you like to explore - solar storms, space missions, or Earth's protection?",
   "Which topic interests you more - how we predict space weather, its effects on technology, or historical events?",
@@ -116,18 +114,15 @@ const followUpQuestions = [
   "Explore more about - aurora mysteries, solar flare predictions, or space weather on other planets?"
 ];
 
-// Simple keyword matching function
 function findBestResponse(question: string): AIResponse | null {
   const lowerQuestion = question.toLowerCase();
   
-  // Check for keyword matches
   for (const [keyword, response] of Object.entries(predefinedResponses)) {
     if (lowerQuestion.includes(keyword)) {
       return response;
     }
   }
   
-  // Check for related terms
   if (lowerQuestion.includes('sun') || lowerQuestion.includes('solar')) {
     return predefinedResponses['solar flare'];
   }
@@ -147,149 +142,204 @@ function findBestResponse(question: string): AIResponse | null {
   return null;
 }
 
-// Generate a contextual response using OpenRouter AI with fallback
+const FREE_AI_MODELS = [
+  'openai/gpt-4o-mini',
+  'openai/gpt-3.5-turbo',
+  'anthropic/claude-3-haiku',
+  'openai/gpt-oss-20b:free',
+  'openai/gpt-4o-mini:free',
+  'openai/gpt-3.5-turbo:free',
+  'google/gemma-2-9b-it:free',
+  'qwen/qwen-2.5-72b-instruct:free'
+];
+
 async function generateAIResponse(question: string, conversationHistory: Message[]): Promise<AIResponse> {
-  try {
-    const apiKey = process.env.OPENROUTER_API_KEY;
-    if (!apiKey) {
-      throw new Error('OpenRouter API key not configured');
-    }
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) {
+    throw new Error('OpenRouter API key not configured');
+  }
 
-    // Build conversation context
-    const context = conversationHistory
-      .slice(-3) // Last 3 messages for context
-      .map(msg => `${msg.type === 'user' ? 'User' : 'AI'}: ${msg.content}`)
-      .join('\n');
+  const context = conversationHistory
+    .slice(-3) // Last 3 messages for context
+    .map(msg => `${msg.type === 'user' ? 'User' : 'AI'}: ${msg.content}`)
+    .join('\n');
 
-    const prompt = `You are a friendly AI assistant for SolarTales, an educational app about space weather for children ages 8-12. 
+  const prompt = `You are SolarBot, the friendly AI assistant for SolarTales - a space weather learning app created by Tanvir Rahman.
 
-Your role:
-- Answer questions about space weather, solar flares, auroras, geomagnetic storms, and related topics
-- Use simple, engaging language with analogies kids can understand
-- Be enthusiastic and encouraging about space science
-- Keep responses concise but informative (2-3 sentences max)
-- Always include a follow-up question to encourage further learning
+MAINTAIN CONSISTENT PERSONALITY:
+- Always be SolarBot - friendly, enthusiastic, and educational
+- Consistent tone and style regardless of which AI model you're running on
+- Same character traits: curious, helpful, patient, and encouraging
+- Never mention which AI model you are or technical details about your implementation
 
-IMPORTANT: You are an AI assistant, NOT Tanvir Rahman. Never claim to be him or speak as if you are him.
+YOUR PERSONALITY TRAITS:
+- Friendly and approachable, perfect for talking with kids and adults
+- Enthusiastic about space weather and science education
+- Great at explaining complex topics in simple, fun ways
+- Knowledgeable about Tanvir Rahman and SolarTales project
+- Can have natural conversations on various topics
+- Always tries to connect topics back to space weather when appropriate
 
-About SolarTales:
-- Founded by Tanvir Rahman, a young passionate student interested in innovation, robotics and sustainability
-- Tanvir is also the founder and president of The White Hole organization
+ABOUT YOUR CREATOR & PROJECT:
+- Created by Tanvir Rahman, a passionate student interested in innovation, robotics, and sustainability
+- Tanvir is the founder and president of The White Hole organization
 - The White Hole has achieved many national glories through various projects
-- SolarTales was created to make space weather education fun and accessible for kids
+- SolarTales makes space weather education fun and accessible for children
 
-Context from conversation:
+CONVERSATION CONTEXT:
 ${context}
 
-Current question: ${question}
+CURRENT QUESTION: ${question}
 
-Please respond with ONLY a valid JSON object (no markdown, no extra text):
+RESPONSE REQUIREMENTS:
+- Maintain SolarBot personality consistently
+- Answer naturally and conversationally
+- Use age-appropriate language (suitable for 8-12 year olds)
+- Connect to space weather education when relevant
+- Be informative yet engaging
 
-{"answer": "Your response here", "followUp": "Your follow-up question", "interestingFact": "Fun fact here", "recommendation": {"title": "Page title", "link": "/page"}}
+MUST respond with ONLY valid JSON (no extra text):
+{
+  "answer": "Your response as SolarBot (2-3 sentences, friendly tone)",
+  "followUp": "Engaging follow-up question that encourages learning", 
+  "interestingFact": "Fun fact related to the topic or space weather",
+  "recommendation": {"title": "Relevant SolarTales page", "link": "/learn or /stories or /time-travel or /data or /ask or /about"}
+}`;
 
-Available pages: /learn, /stories, /time-travel, /data`;
+  let lastError: Error | null = null;
+  const startTime = Date.now();
 
-    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-        'X-Title': 'SolarTales - Ask AI'
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.2-3b-instruct:free', // Use free model
-        messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful AI assistant for SolarTales, specializing in making space weather science fun and accessible for kids.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        max_tokens: 500,
-        temperature: 0.7
-      })
-    });
-
-    if (!response.ok) {
-      // If OpenRouter fails, throw error to trigger fallback
-      throw new Error(`OpenRouter API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const aiResponse = data.choices[0]?.message?.content;
-
-    if (!aiResponse) {
-      throw new Error('No response from AI');
-    }
-
-    // Try to parse JSON response with better error handling
+  for (const model of FREE_AI_MODELS) {
     try {
-      // Clean the response - remove any extra whitespace, code blocks, etc.
-      let cleanedResponse = aiResponse.trim();
+      console.log(`🤖 Trying AI model: ${model}`);
       
-      // Remove markdown code blocks if present
-      if (cleanedResponse.startsWith('```json') && cleanedResponse.endsWith('```')) {
-        cleanedResponse = cleanedResponse.slice(7, -3).trim();
-      } else if (cleanedResponse.startsWith('```') && cleanedResponse.endsWith('```')) {
-        cleanedResponse = cleanedResponse.slice(3, -3).trim();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      
+      const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+          'X-Title': 'SolarTales - Ask AI'
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are SolarBot, the friendly AI assistant for SolarTales created by Tanvir Rahman. CRITICAL: You must respond with ONLY valid JSON and nothing else. No explanations, no additional text, no markdown. Just pure JSON: {"answer": "text", "followUp": "text", "interestingFact": "text", "recommendation": {"title": "text", "link": "/page"}}'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: 300,
+          temperature: 0.5
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        throw new Error(`Model ${model} returned status ${response.status}`);
       }
-      
-      // Try to find JSON within the response
-      const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        cleanedResponse = jsonMatch[0];
+
+      const data = await response.json();
+      const aiResponse = data.choices[0]?.message?.content;
+
+      if (!aiResponse) {
+        throw new Error(`No response from model ${model}`);
       }
+
+      const parsedResponse = parseAIResponse(aiResponse);
+      console.log(`✅ Successfully got response from: ${model} in ${Date.now() - startTime}ms`);
+      return parsedResponse;
+
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
       
-      const parsedResponse = JSON.parse(cleanedResponse);
-      
-      // Validate that we have the expected structure
-      if (parsedResponse && typeof parsedResponse === 'object') {
-        return {
-          answer: parsedResponse.answer || "I'm here to help you learn about space weather!",
-          followUp: parsedResponse.followUp || followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)],
-          interestingFact: parsedResponse.interestingFact || interestingFacts[Math.floor(Math.random() * interestingFacts.length)],
-          recommendation: parsedResponse.recommendation
-        };
+      if (lastError.name === 'AbortError') {
+        console.log(`⏰ Model ${model} timed out after 8 seconds`);
       } else {
-        throw new Error('Invalid JSON structure');
+        console.log(`❌ Model ${model} failed: ${lastError.message}`);
       }
-    } catch (parseError) {
-      console.log('JSON parsing failed, using response as text:', parseError);
-      // If not JSON, use the response as answer but clean it up
-      let cleanAnswer = aiResponse.trim();
+      continue;
+    }
+  }
+
+  console.log(`🚨 All ${FREE_AI_MODELS.length} AI models failed, using intelligent fallback`);
+  throw new Error(`All AI models failed. Last error: ${lastError?.message}`);
+}
+
+function parseAIResponse(aiResponse: string): AIResponse {
+  try {
+    let cleanedResponse = aiResponse.trim();
+    
+    if (cleanedResponse.startsWith('```json') && cleanedResponse.endsWith('```')) {
+      cleanedResponse = cleanedResponse.slice(7, -3).trim();
+    } else if (cleanedResponse.startsWith('```') && cleanedResponse.endsWith('```')) {
+      cleanedResponse = cleanedResponse.slice(3, -3).trim();
+    }
+    
+    let jsonStart = cleanedResponse.indexOf('{');
+    if (jsonStart !== -1) {
+      let braceCount = 0;
+      let jsonEnd = jsonStart;
       
-      // If it looks like broken JSON, extract just the answer part
-      if (cleanAnswer.includes('"answer"')) {
-        const answerMatch = cleanAnswer.match(/"answer":\s*"([^"]+)"/);
-        if (answerMatch) {
-          cleanAnswer = answerMatch[1];
+      for (let i = jsonStart; i < cleanedResponse.length; i++) {
+        if (cleanedResponse[i] === '{') braceCount++;
+        if (cleanedResponse[i] === '}') braceCount--;
+        
+        if (braceCount === 0) {
+          jsonEnd = i;
+          break;
         }
       }
       
-      return {
-        answer: cleanAnswer,
-        followUp: followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)],
-        interestingFact: interestingFacts[Math.floor(Math.random() * interestingFacts.length)]
-      };
+      if (braceCount === 0) {
+        cleanedResponse = cleanedResponse.substring(jsonStart, jsonEnd + 1);
+      }
     }
-
-  } catch (error) {
-    console.error('OpenRouter failed, using intelligent fallback:', error);
     
-    // Intelligent fallback based on question content
-    return generateIntelligentFallback(question);
+    const parsedResponse = JSON.parse(cleanedResponse);
+    
+    if (parsedResponse && typeof parsedResponse === 'object' && parsedResponse.answer) {
+      return {
+        answer: parsedResponse.answer,
+        followUp: parsedResponse.followUp || followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)],
+        interestingFact: parsedResponse.interestingFact || interestingFacts[Math.floor(Math.random() * interestingFacts.length)],
+        recommendation: parsedResponse.recommendation
+      };
+    } else {
+      throw new Error('Invalid JSON structure or missing answer');
+    }
+  } catch (parseError) {
+    console.log('JSON parsing failed, extracting text response:', parseError);
+    
+    let textAnswer = aiResponse.trim();
+    
+    const answerMatch = textAnswer.match(/"answer":\s*"([^"]+)"/);
+    if (answerMatch) {
+      textAnswer = answerMatch[1];
+    } else {
+      textAnswer = textAnswer.split('\n')[0].substring(0, 200).trim();
+    }
+    
+    return {
+      answer: textAnswer || "I'm here to help you learn about space weather!",
+      followUp: followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)],
+      interestingFact: interestingFacts[Math.floor(Math.random() * interestingFacts.length)]
+    };
   }
 }
 
-// Intelligent fallback response generator
 function generateIntelligentFallback(question: string): AIResponse {
   const lowerQuestion = question.toLowerCase();
   
-  // Space weather topics
   if (lowerQuestion.includes('solar flare') || lowerQuestion.includes('flare')) {
     return {
       answer: "Solar flares are like giant explosions on the Sun! They happen when magnetic energy stored in the Sun's atmosphere suddenly gets released, shooting particles and energy into space at incredible speeds.",
@@ -344,7 +394,6 @@ function generateIntelligentFallback(question: string): AIResponse {
     };
   }
   
-  // Questions about the founder and team
   if (lowerQuestion.includes('tanvir rahman') || lowerQuestion.includes('tanvir') || lowerQuestion.includes('rahman')) {
     return {
       answer: "Tanvir Rahman is the founder and lead developer of Solar Tales! He's also the founder and president of The White Hole organization. He's a young, passionate student who is very curious about innovation, robotics, and sustainability. He has created many projects and led The White Hole to many national achievements!",
@@ -372,7 +421,6 @@ function generateIntelligentFallback(question: string): AIResponse {
     };
   }
   
-  // General space weather response
   return {
     answer: "Space weather is all about the amazing things that happen when energy and particles from our Sun travel through space! This includes solar flares, beautiful auroras, and invisible magnetic storms that can affect technology on Earth.",
     followUp: "What aspect of space weather interests you most - solar flares, auroras, or how it affects Earth?",
@@ -385,9 +433,8 @@ export async function POST(request: NextRequest) {
   let question: string = '';
   
   try {
-    // Rate limiting
     const clientId = getClientIdentifier(request);
-    const rateLimitResult = rateLimit(clientId, { windowMs: 60000, maxRequests: 10 }); // 10 requests per minute
+    const rateLimitResult = rateLimit(clientId, { windowMs: 60000, maxRequests: 10 });
 
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
@@ -407,7 +454,7 @@ export async function POST(request: NextRequest) {
     }
 
     const { question: requestQuestion, conversationHistory = [] } = await request.json();
-    question = requestQuestion; // Store in outer scope
+    question = requestQuestion;
 
     if (!question || typeof question !== 'string') {
       return NextResponse.json(
@@ -416,7 +463,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Basic content filtering for inappropriate content
     const inappropriateWords = ['hate', 'violence', 'harm', 'kill', 'suicide', 'drug'];
     const lowerQuestion = question.toLowerCase();
     const hasInappropriateContent = inappropriateWords.some(word => lowerQuestion.includes(word));
@@ -430,34 +476,29 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Log conversation for improvement (anonymized)
     const conversationLog = {
       timestamp: new Date().toISOString(),
       clientHash: clientId,
-      question: question.substring(0, 500), // Limit length for privacy
+      question: question.substring(0, 500),
       conversationLength: conversationHistory.length
     };
     console.log('Ask AI Request:', conversationLog);
 
-    // First try predefined responses for common questions
     let response = findBestResponse(question);
 
-    // If no predefined response, generate with AI (with intelligent fallback)
     if (!response) {
       try {
         response = await generateAIResponse(question, conversationHistory);
       } catch (error) {
-        console.error('AI generation failed, using intelligent fallback:', error);
+        console.error('All AI models failed, using intelligent fallback:', error);
         response = generateIntelligentFallback(question);
       }
     }
 
-    // Add random interesting fact if not provided
     if (!response.interestingFact) {
       response.interestingFact = interestingFacts[Math.floor(Math.random() * interestingFacts.length)];
     }
 
-    // Add random follow-up if not provided
     if (!response.followUp) {
       response.followUp = followUpQuestions[Math.floor(Math.random() * followUpQuestions.length)];
     }
@@ -476,19 +517,16 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error in ask-ai API:', error);
     
-    // More detailed error logging for development
     if (error instanceof Error) {
       console.error('Error message:', error.message);
       console.error('Error stack:', error.stack);
     }
     
-    // Check if API key is missing
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       console.error('OPENROUTER_API_KEY is not configured');
     }
     
-    // Always use intelligent fallback - no debug messages shown to users
     const fallbackResponse = generateIntelligentFallback(
       question || 'space weather'
     );

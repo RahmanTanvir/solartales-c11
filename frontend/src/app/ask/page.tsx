@@ -108,8 +108,9 @@ export default function AskPage() {
   const [rateLimitRemaining, setRateLimitRemaining] = useState<number | null>(null);
   const [rateLimitReset, setRateLimitReset] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(false);
   
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<any>(null);
 
   // Initialize speech synthesis
@@ -121,8 +122,14 @@ export default function AskPage() {
 
   // Auto-scroll to latest message
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (shouldAutoScroll && messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTo({
+        top: messagesContainerRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+      setShouldAutoScroll(false);
+    }
+  }, [messages, shouldAutoScroll]);
 
   // Rotate interesting facts every 5 seconds
   useEffect(() => {
@@ -186,6 +193,7 @@ export default function AskPage() {
     setMessages(prev => [...prev, userMessage]);
     setInputText('');
     setIsLoading(true);
+    setShouldAutoScroll(true);
 
     try {
       const response = await fetch('/api/ask-ai', {
@@ -228,6 +236,7 @@ export default function AskPage() {
       };
 
       setMessages(prev => [...prev, aiMessage]);
+      setShouldAutoScroll(true);
     } catch (error) {
       console.error('Error getting AI response:', error);
       setError('Having trouble connecting. Please try again in a moment.');
@@ -242,6 +251,7 @@ export default function AskPage() {
         interestingFact: "Solar flares can reach temperatures of 50 million degrees Celsius!"
       };
       setMessages(prev => [...prev, errorMessage]);
+      setShouldAutoScroll(true);
     } finally {
       setIsLoading(false);
     }
@@ -339,7 +349,7 @@ export default function AskPage() {
                 className="bg-slate-800/50 backdrop-blur-md rounded-xl border border-purple-500/20 shadow-2xl"
               >
                 {/* Messages */}
-                <div className="h-96 overflow-y-auto p-6 space-y-4">
+                <div ref={messagesContainerRef} className="h-96 overflow-y-auto p-6 space-y-4">
                   <AnimatePresence>
                     {messages.map((message) => (
                       <motion.div
@@ -477,8 +487,6 @@ export default function AskPage() {
                       </div>
                     </motion.div>
                   )}
-                  
-                  <div ref={messagesEndRef} />
                 </div>
 
                 {/* Input Area */}
