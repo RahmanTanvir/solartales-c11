@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { Rocket, Zap, Star, Waves, Users, Mic, MicOff, Play, Pause, Volume2, Plane, Tractor, Camera, MessageCircle, Sparkles, MapPin, Settings, History, Briefcase, Calendar, Clock } from 'lucide-react';
 import { useRealTimeSpaceWeather } from '@/hooks/useRealTimeSpaceWeather';
 import Navigation from '@/components/Navigation';
+import { localStorageManager } from '@/lib/localStorage';
+import { clientAIStoryGenerator } from '@/lib/clientAIStoryGenerator';
 
 interface Character {
   id: string;
@@ -48,6 +50,9 @@ export default function StoriesPageClient() {
   const [isPaused, setIsPaused] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const [currentUtterance, setCurrentUtterance] = useState<SpeechSynthesisUtterance | null>(null);
+  const [storedStories, setStoredStories] = useState<any[]>([]);
+  const [apiKey, setApiKey] = useState<string>('');
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const { mostSignificantEvent, recentEvents } = useRealTimeSpaceWeather();
 
   const characters: Character[] = [
@@ -160,11 +165,42 @@ export default function StoriesPageClient() {
     }
   ];
 
-  // Set Real Time Mode as default when component mounts
+  // Load stored stories from localStorage
+  const loadStoredStories = async () => {
+    try {
+      const stories = await localStorageManager.getStories({ limit: 20 });
+      setStoredStories(stories);
+    } catch (error) {
+      console.error('Error loading stored stories:', error);
+    }
+  };
+
+  // Handle API key setting
+  const handleApiKeySubmit = () => {
+    if (apiKey.trim()) {
+      clientAIStoryGenerator.setApiKey(apiKey.trim());
+      setShowApiKeyInput(false);
+      alert('OpenRouter API key saved! You can now generate enhanced stories with AI.');
+    }
+  };
+
+  // Set Real Time Mode as default when component mounts and load stored stories
   useEffect(() => {
     const realTimeMood = storyMoods.find(mood => mood.id === 'real_time');
     if (realTimeMood) {
       setSelectedMood(realTimeMood);
+    }
+    
+    // Load stories from localStorage and check for existing API key
+    loadStoredStories();
+    
+    // Check if API key exists in localStorage
+    if (typeof window !== 'undefined') {
+      const existingKey = localStorage.getItem('openrouter_api_key');
+      if (existingKey) {
+        setApiKey(existingKey);
+        clientAIStoryGenerator.setApiKey(existingKey);
+      }
     }
   }, []);
 
@@ -173,39 +209,113 @@ export default function StoriesPageClient() {
     setShowStory(false);
     
     try {
-      const response = await fetch('/api/stories', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          character: character.id,
-          ageGroup: selectedAgeGroup,
-          storySize: selectedStorySize,
-          mood: selectedMood?.id || 'default',
-          moodParameters: customParameters,
-          eventType: mostSignificantEvent?.eventType || 'solar_flare',
-          intensity: mostSignificantEvent?.severityLevel || 'moderate',
-          eventTime: mostSignificantEvent?.eventTime || new Date().toISOString(),
-          sourceData: mostSignificantEvent?.sourceData || {}
-        })
-      });
+      // Generate story directly on client-side with AI
+      const storyConfig = {
+        character,
+        ageGroup: selectedAgeGroup as '8-10' | '11-13' | '14-17',
+        storySize: selectedStorySize as 'short' | 'medium' | 'long',
+        mood: selectedMood?.id,
+        eventType: mostSignificantEvent?.eventType || 'solar_flare',
+        intensity: mostSignificantEvent?.severityLevel || 'moderate',
+        eventTime: mostSignificantEvent?.eventTime || new Date().toISOString(),
+      };
 
-      const data = await response.json();
+      console.log('Generating story with config:', storyConfig);
       
-      if (data.success && data.story) {
-        setCurrentStory(data.story.story);
-        setEducationalFacts(generateEducationalFacts(mostSignificantEvent?.eventType || 'solar_flare'));
+      const generatedStory = await clientAIStoryGenerator.generateStory(storyConfig);
+      
+      if (generatedStory.story) {
+        // Clean up the story text to ensure proper formatting
+        const cleanedStory = generatedStory.story
+          .replace(/\\n\\n/g, '\n\n')  // Replace escaped newlines
+          .replace(/\\n/g, '\n')       // Replace single escaped newlines
+          .trim();
+        
+        setCurrentStory(cleanedStory);
+        setEducationalFacts(generatedStory.educationalFacts);
         setShowStory(true);
+        
+        console.log('Story generated successfully:', {
+          title: generatedStory.title,
+          factCount: generatedStory.educationalFacts.length,
+          storyLength: generatedStory.story.length
+        });
+        
+        // Optionally save story to localStorage (if user wants to keep it)
+        // This is optional since the user said we don't need to store anything
+        try {
+          const storyData = {
+            id: `story-${Date.now()}-${character.id}`,
+            title: generatedStory.title,
+            story: generatedStory.story,
+            character: character.id,
+            age_group: selectedAgeGroup as '8-10' | '11-13' | '14-17',
+            educational_facts: generatedStory.educationalFacts,
+            space_weather_event: {
+              type: mostSignificantEvent?.eventType || 'solar_flare',
+              intensity: mostSignificantEvent?.severityLevel || 'moderate',
+              description: `${mostSignificantEvent?.eventType || 'solar_flare'} with ${mostSignificantEvent?.severityLevel || 'moderate'} intensity`,
+              impacts: ['Technology impact', 'Communication effects']
+            },
+            generated_at: new Date().toISOString(),
+            is_active: true
+          };
+          
+          await localStorageManager.saveStory(storyData);
+          console.log('Story saved to localStorage for future reference');
+          
+          // Reload stories to update the UI
+          await loadStoredStories();
+        } catch (storageError) {
+          console.error('Error saving story to localStorage:', storageError);
+          // Don't fail the whole operation if storage fails
+        }
       }
     } catch (error) {
       console.error('Error generating story:', error);
-      setCurrentStory('Oops! Something went wrong while creating your story. Please try again!');
-      setEducationalFacts([]);
+      
+      // Show fallback story based on character and event
+      const fallbackStory = getFallbackStory(character, mostSignificantEvent?.eventType || 'solar_flare');
+      setCurrentStory(fallbackStory);
+      setEducationalFacts(generateEducationalFacts(mostSignificantEvent?.eventType || 'solar_flare'));
       setShowStory(true);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const getFallbackStory = (character: Character, eventType: string): string => {
+    return `Hi there! I'm ${character.name}, and I'm here to tell you about an amazing space weather event happening right now - a ${eventType}! 
+
+Even though our AI storyteller is taking a break, I can still share this incredible cosmic adventure with you. Space weather events like this ${eventType} are some of nature's most spectacular phenomena, connecting our Sun to Earth in ways that affect everything from the beautiful aurora lights in the sky to the technology we use every day.
+
+This ${eventType} started on our Sun, traveled through the vast emptiness of space, and is now interacting with Earth's magnetic field in fascinating ways. It's a reminder that we live in a connected cosmic neighborhood where events on the Sun can influence life on our planet!
+
+Scientists around the world are monitoring this event and learning more about how space weather works. It's like having a real-time science experiment happening right above our heads!
+
+Keep looking up at the sky - you might see some beautiful aurora lights if you're in the right location. And remember, every space weather event teaches us something new about our amazing universe!`;
+  };
+
+  // Helper function to format story text for display
+  const formatStoryText = (text: string): React.ReactNode => {
+    // Split by double newlines to create paragraphs
+    const paragraphs = text.split(/\n\n+/);
+    
+    return paragraphs.map((paragraph, index) => {
+      // Replace single newlines within paragraphs with line breaks
+      const formattedParagraph = paragraph.split(/\n/).map((line, lineIndex) => (
+        <React.Fragment key={lineIndex}>
+          {line}
+          {lineIndex < paragraph.split(/\n/).length - 1 && <br />}
+        </React.Fragment>
+      ));
+      
+      return (
+        <p key={index} className="mb-4 last:mb-0">
+          {formattedParagraph}
+        </p>
+      );
+    });
   };
 
   const generateEducationalFacts = (eventType: string): string[] => {
@@ -719,6 +829,80 @@ export default function StoriesPageClient() {
             </motion.div>
           )}
 
+          {/* AI Configuration Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 max-w-4xl mx-auto"
+          >
+            <div className="bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-2xl p-6 backdrop-blur-sm border border-white/20">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <Sparkles className="w-6 h-6 text-yellow-400" />
+                  <h3 className="text-lg font-bold text-white">AI Story Enhancement</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  {clientAIStoryGenerator.isAvailable() ? (
+                    <span className="text-green-400 text-sm flex items-center gap-1">
+                      <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                      AI Ready
+                    </span>
+                  ) : (
+                    <span className="text-yellow-400 text-sm flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                      Fallback Mode
+                    </span>
+                  )}
+                </div>
+              </div>
+              
+              <p className="text-gray-300 text-sm mb-4">
+                {clientAIStoryGenerator.isAvailable() 
+                  ? "AI enhancement is active! Stories will be generated with advanced AI for more engaging and personalized content."
+                  : "Using built-in stories. Add your OpenRouter API key for enhanced AI-generated stories tailored to current space weather events."
+                }
+              </p>
+              
+              {!clientAIStoryGenerator.isAvailable() && (
+                <div className="space-y-3">
+                  {!showApiKeyInput ? (
+                    <button
+                      onClick={() => setShowApiKeyInput(true)}
+                      className="bg-gradient-to-r from-purple-500 to-blue-500 text-white px-4 py-2 rounded-lg hover:from-purple-600 hover:to-blue-600 transition-colors text-sm font-medium"
+                    >
+                      Add OpenRouter API Key (Free)
+                    </button>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="password"
+                        value={apiKey}
+                        onChange={(e) => setApiKey(e.target.value)}
+                        placeholder="Enter your OpenRouter API key"
+                        className="flex-1 p-2 rounded-lg bg-gray-800 text-white border border-gray-600 text-sm"
+                      />
+                      <button
+                        onClick={handleApiKeySubmit}
+                        className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setShowApiKeyInput(false)}
+                        className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  )}
+                  <p className="text-xs text-gray-400">
+                    Get your free API key from <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">OpenRouter</a>. Free tier includes access to multiple AI models. Your key is stored locally and never shared.
+                  </p>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
           {/* Character Selection */}
           {!selectedCharacter && (
             <motion.div
@@ -943,9 +1127,9 @@ export default function StoriesPageClient() {
                   )}
                   
                   <div className="prose prose-invert prose-lg max-w-none">
-                    <p className="text-lg leading-relaxed whitespace-pre-wrap">
-                      {currentStory}
-                    </p>
+                    <div className="text-lg leading-relaxed">
+                      {formatStoryText(currentStory)}
+                    </div>
                   </div>
                 </div>
 

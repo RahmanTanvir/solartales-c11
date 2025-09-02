@@ -1,5 +1,5 @@
 // Real-time updates handling for space weather data
-import { supabase } from './supabase';
+import { localStorageManager } from './localStorage';
 import { WeatherDataProcessor } from './weatherDataProcessor';
 
 export interface RealTimeUpdate {
@@ -29,8 +29,8 @@ export class RealTimeHandler {
       await this.checkForUpdates();
     }, intervalMinutes * 60 * 1000);
 
-    // Set up Supabase real-time subscriptions
-    this.setupSupabaseSubscriptions();
+    // Set up local storage change detection
+    this.setupLocalStorageSubscriptions();
 
     console.log(`Real-time updates started with ${intervalMinutes} minute intervals`);
   }
@@ -100,37 +100,45 @@ export class RealTimeHandler {
     }
   }
 
-  // Set up Supabase real-time subscriptions
-  private setupSupabaseSubscriptions() {
-    // Subscribe to weather events table
-    supabase
-      .channel('weather_events')
-      .on('postgres_changes', 
-        { event: 'INSERT', schema: 'public', table: 'weather_events' },
-        (payload) => {
-          this.notifySubscribers({
-            type: 'weather_event',
-            data: payload.new,
-            timestamp: new Date().toISOString()
-          });
+  // Set up local storage change detection (replaces Supabase real-time)
+  private setupLocalStorageSubscriptions() {
+    // Listen for localStorage changes in other tabs/windows
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (event) => {
+        if (event.key === 'solartales_data' && event.newValue) {
+          try {
+            const newData = JSON.parse(event.newValue);
+            const oldData = event.oldValue ? JSON.parse(event.oldValue) : null;
+            
+            // Check for new stories
+            if (oldData && newData.stories.length > oldData.stories.length) {
+              const newStories = newData.stories.slice(oldData.stories.length);
+              newStories.forEach((story: any) => {
+                this.notifySubscribers({
+                  type: 'story_generated',
+                  data: story,
+                  timestamp: new Date().toISOString()
+                });
+              });
+            }
+            
+            // Check for new weather events
+            if (oldData && newData.weatherEvents.length > oldData.weatherEvents.length) {
+              const newEvents = newData.weatherEvents.slice(oldData.weatherEvents.length);
+              newEvents.forEach((event: any) => {
+                this.notifySubscribers({
+                  type: 'weather_event',
+                  data: event,
+                  timestamp: new Date().toISOString()
+                });
+              });
+            }
+          } catch (error) {
+            console.error('Error parsing localStorage change:', error);
+          }
         }
-      )
-      .subscribe();
-
-    // Subscribe to stories table for new stories
-    supabase
-      .channel('stories')
-      .on('postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'stories' },
-        (payload) => {
-          this.notifySubscribers({
-            type: 'story_generated',
-            data: payload.new,
-            timestamp: new Date().toISOString()
-          });
-        }
-      )
-      .subscribe();
+      });
+    }
   }
 
   // Trigger story generation for significant events
@@ -139,24 +147,23 @@ export class RealTimeHandler {
       // This would normally call the AI story generation service
       console.log('Triggering story generation for event:', event.id);
       
-      // For now, we'll create a placeholder notification
-      const { error } = await supabase
-        .from('notifications')
-        .insert({
-          weather_event_id: event.id,
-          notification_type: 'space_weather_alert',
-          title: `${event.eventType.replace('_', ' ').toUpperCase()} Alert!`,
-          message: `A ${event.severityLevel} ${event.eventType.replace('_', ' ')} is happening right now! Want to see its story?`,
-          severity: event.severityLevel === 'extreme' ? 'critical' : 
-                   ['severe', 'strong'].includes(event.severityLevel) ? 'warning' : 'info',
-          target_audience: { age_min: 8, age_max: 17 },
-          send_at: new Date().toISOString(),
-          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() // 24 hours
-        });
-
-      if (error) {
-        console.error('Error creating notification:', error);
-      }
+      // For now, we'll create a placeholder notification and store it locally
+      const notification = {
+        id: `notification-${Date.now()}`,
+        weather_event_id: event.id,
+        notification_type: 'space_weather_alert',
+        title: `${event.eventType.replace('_', ' ').toUpperCase()} Alert!`,
+        message: `A ${event.severityLevel} ${event.eventType.replace('_', ' ')} is happening right now! Want to see its story?`,
+        severity: event.severityLevel === 'extreme' ? 'critical' : 
+                 ['severe', 'strong'].includes(event.severityLevel) ? 'warning' : 'info',
+        target_audience: { age_min: 8, age_max: 17 },
+        created_at: new Date().toISOString(),
+        is_active: true
+      };
+      
+      // In a real implementation, we might store notifications locally or trigger story generation
+      console.log('Generated notification:', notification);
+      
     } catch (error) {
       console.error('Error triggering story generation:', error);
     }

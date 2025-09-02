@@ -1,7 +1,7 @@
 // Data processing pipeline for space weather events
 import { spaceWeatherAPI } from './spaceWeatherAPI';
 import { MockSpaceWeatherProvider } from './mockSpaceWeatherProvider';
-import { supabase } from './supabase';
+import { localStorageManager } from './localStorage';
 
 export interface ProcessedWeatherEvent {
   id: string;
@@ -177,11 +177,11 @@ export class WeatherDataProcessor {
         return this.processMockData();
       }
 
-      // Try to store processed events in Supabase (non-blocking)
+      // Try to store processed events in local storage (non-blocking)
       try {
         await this.storeProcessedEvents(processedEvents);
-      } catch (dbError) {
-        // Continue execution even if database storage fails
+      } catch (storageError) {
+        // Continue execution even if local storage fails
       }
 
       return processedEvents;
@@ -248,18 +248,11 @@ export class WeatherDataProcessor {
       return;
     }
 
-    // Test database connection first
+    // Test local storage accessibility
     try {
-      const { data: testData, error: testError } = await supabase
-        .from('weather_events')
-        .select('count')
-        .limit(1);
-      
-      if (testError) {
-        return; // Skip storage if database is not accessible
-      }
+      localStorageManager.getStorageStats();
     } catch (connectionError) {
-      return; // Skip storage if connection fails
+      return; // Skip storage if local storage is not accessible
     }
 
     for (const event of events) {
@@ -275,13 +268,20 @@ export class WeatherDataProcessor {
           is_active: true
         };
 
-        const { data, error } = await supabase
-          .from('weather_events')
-          .upsert(weatherEvent, { onConflict: 'id' });
-
-        if (error) {
-          // Continue processing even if database storage fails
-          // The application can still function with in-memory data
+        try {
+          await localStorageManager.saveWeatherEvent({
+            id: event.id,
+            created_at: new Date().toISOString(),
+            event_type: event.eventType as any,
+            intensity: event.severityLevel as any,
+            start_time: event.eventTime,
+            description: `${event.eventType} with ${event.severityLevel} intensity`,
+            impacts: ['Technology impact', 'Communication effects'],
+            source: 'space_weather_api',
+            is_active: true
+          });
+        } catch (err) {
+          // Continue silently if storage fails
           continue;
         }
       } catch (err) {
@@ -295,26 +295,35 @@ export class WeatherDataProcessor {
   async getRecentStoryEvents(): Promise<ProcessedWeatherEvent[]> {
     const dayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    const { data, error } = await supabase
-      .from('weather_events')
-      .select('*')
-      .gte('event_time', dayAgo)
-      .eq('is_active', true)
-      .order('event_time', { ascending: false });
+    try {
+      const events = await localStorageManager.getWeatherEvents({ 
+        isActive: true,
+        limit: 50
+      });
+      
+      const recentEvents = events.filter(event => 
+        new Date(event.created_at).getTime() > new Date(dayAgo).getTime()
+      );
 
-    if (error) {
+      return recentEvents.map((event: any) => ({
+        id: event.id,
+        eventType: event.event_type,
+        eventTime: event.start_time,
+        intensity: 3, // Default intensity
+        severityLevel: event.intensity,
+        storyContext: {
+          characters: ['astronaut'],
+          educationalTopics: ['space weather'],
+          difficulty: 'beginner' as const,
+          impactLevel: event.intensity
+        },
+        sourceData: {}
+      }));
+      
+    } catch (error) {
+      console.error('Error fetching recent events:', error);
       return [];
     }
-
-    return data.map(event => ({
-      id: event.id,
-      eventType: event.event_type,
-      eventTime: event.event_time,
-      intensity: event.intensity,
-      severityLevel: event.severity_level,
-      storyContext: event.processed_data,
-      sourceData: event.source_data
-    }));
   }
 
   // Get the most significant current event for story generation

@@ -143,14 +143,14 @@ function findBestResponse(question: string): AIResponse | null {
 }
 
 const FREE_AI_MODELS = [
-  'openai/gpt-4o-mini',
-  'openai/gpt-3.5-turbo',
-  'anthropic/claude-3-haiku',
-  'openai/gpt-oss-20b:free',
+  'qwen/qwen-2.5-72b-instruct:free', // Fastest response time
   'openai/gpt-4o-mini:free',
   'openai/gpt-3.5-turbo:free',
   'google/gemma-2-9b-it:free',
-  'qwen/qwen-2.5-72b-instruct:free'
+  'openai/gpt-oss-20b:free',
+  'openai/gpt-4o-mini',
+  'openai/gpt-3.5-turbo',
+  'anthropic/claude-3-haiku'
 ];
 
 async function generateAIResponse(question: string, conversationHistory: Message[]): Promise<AIResponse> {

@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TimeTravelEvent, getCharacterById } from '@/lib/timeTravelEvents';
 import { ArrowLeft, Play, Pause, RotateCcw, Volume2, VolumeX, Clock, User, Sparkles } from 'lucide-react';
+import { clientAIStoryGenerator } from '@/lib/clientAIStoryGenerator';
 
 interface TimeTravelStoryViewerProps {
   event: TimeTravelEvent;
@@ -21,7 +22,7 @@ interface StorySection {
   audioUrl?: string;
 }
 
-// Real API story generation
+// Client-side AI story generation for historical events
 const generateHistoricalStory = async (event: TimeTravelEvent, character: string): Promise<{
   title: string;
   story: string;
@@ -29,43 +30,38 @@ const generateHistoricalStory = async (event: TimeTravelEvent, character: string
   educationalFacts: string[];
 }> => {
   try {
-    const response = await fetch('/api/historical-stories', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        eventId: event.id,
-        character: character,
-        ageGroup: '11-13'
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to generate story');
-    }
-
-    const data = await response.json();
+    const characterData = getCharacterById(character);
     
-    if (!data.success) {
-      throw new Error(data.error || 'Story generation failed');
-    }
+    // Use client-side AI story generator
+    const storyConfig = {
+      character: {
+        id: character,
+        name: characterData?.name || 'Time Traveler',
+        description: characterData?.description || 'A historical witness'
+      },
+      ageGroup: '11-13' as '8-10' | '11-13' | '14-17',
+      storySize: 'medium' as 'short' | 'medium' | 'long',
+      eventType: 'solar_flare', // Historical events are typically solar-related
+      intensity: event.severity || 'extreme',
+      eventTime: event.date.toISOString()
+    };
 
+    const generatedStory = await clientAIStoryGenerator.generateStory(storyConfig);
+    
     // Parse the story content into sections
-    const storyContent = data.story.content;
-    const sections = parseStoryIntoSections(storyContent, event);
+    const sections = parseStoryIntoSections(generatedStory.story, event);
     
     return {
-      title: data.story.title,
-      story: storyContent,
+      title: generatedStory.title,
+      story: generatedStory.story,
       sections: sections,
-      educationalFacts: data.story.educationalFacts || []
+      educationalFacts: generatedStory.educationalFacts
     };
     
   } catch (error) {
     console.error('Error generating historical story:', error);
     
-    // Fallback to mock data if API fails
+    // Fallback to mock data if AI fails
     const characterData = getCharacterById(character);
     const fallbackData = getFallbackStoryForEvent(event.id, character);
     

@@ -1,8 +1,8 @@
 // API optimization and caching service for space weather data
 import { spaceWeatherAPI } from './spaceWeatherAPI';
-import { supabase } from './supabase';
+import { localStorageManager } from './localStorage';
 
-// Enable database operations now that migration has been applied
+// Enable local storage operations 
 const ENABLE_DATABASE_OPERATIONS = true;
 
 interface CacheEntry {
@@ -161,13 +161,10 @@ export class SpaceWeatherAPIOptimizer {
         }
       };
 
-      const { error } = await supabase
-        .from('api_cache')
-        .upsert(cacheRecord, { onConflict: 'cache_key' });
-
-      if (error) {
-        // Silently fail cache storage
-      }
+      // TODO: Implement local storage caching if needed
+      // const { error } = await supabase
+      //   .from('api_cache')
+      //   .upsert(cacheRecord, { onConflict: 'cache_key' });
     } catch (error) {
       // Silently fail cache storage
     }
@@ -180,26 +177,23 @@ export class SpaceWeatherAPIOptimizer {
     }
 
     try {
-      const { data, error } = await supabase
-        .from('api_cache')
-        .select('*')
-        .eq('cache_key', 'latest-space-weather')
-        .single();
+      // TODO: Implement local storage fallback if needed
+      // const { data, error } = await supabase
+      //   .from('api_cache')
+      //   .select('*')
+      //   .eq('cache_key', 'latest-space-weather')
+      //   .single();
 
-      if (error || !data) {
-        return null;
-      }
+      return null; // For now, return null since we removed Supabase
 
-      // Check if cached data is not too old (max 1 hour)
-      const cacheAge = Date.now() - new Date(data.metadata?.cached_at || data.created_at).getTime();
-      const maxAge = 60 * 60 * 1000; // 1 hour
-
-      if (cacheAge > maxAge) {
-        return null;
-      }
-
-      console.log('Using fallback data from Supabase cache');
-      return data.response_data;
+      // TODO: Check cached data age when local storage is implemented
+      // const cacheAge = Date.now() - new Date(data.metadata?.cached_at || data.created_at).getTime();
+      // const maxAge = 60 * 60 * 1000; // 1 hour
+      // if (cacheAge > maxAge) {
+      //   return null;
+      // }
+      // console.log('Using fallback data from local storage cache');
+      // return data.response_data;
 
     } catch (error) {
       console.error('Failed to get fallback data:', error);
@@ -269,20 +263,19 @@ export class SpaceWeatherAPIOptimizer {
     }
 
     try {
-      const { error } = await supabase
-        .from('api_performance')
-        .insert({
-          endpoint: operation,
-          method: 'GET', // Default method, could be parameterized
-          response_time_ms: Math.round(duration),
-          status_code: status === 'success' ? 200 : 500,
-          error_message: status === 'error' ? 'API operation failed' : null,
-          metadata: { operation, status }
-        });
+      // TODO: Implement performance logging to local storage if needed
+      // const { error } = await supabase
+      //   .from('api_performance')
+      //   .insert({
+      //     endpoint: operation,
+      //     method: 'GET',
+      //     response_time_ms: Math.round(duration),
+      //     status_code: status === 'success' ? 200 : 500,
+      //     error_message: status === 'error' ? 'API operation failed' : null,
+      //     metadata: { operation, status }
+      //   });
 
-      if (error) {
-        console.warn('Failed to log performance metric:', error);
-      }
+      console.log(`Performance metric logged: [${operation}]: ${duration.toFixed(2)}ms - ${status}`);
     } catch (error) {
       // Silently fail performance logging to not affect main functionality
       console.debug('Performance logging failed:', error);

@@ -7,30 +7,13 @@ import Navigation from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { FeaturesSection } from '@/components/FeatureCard';
 import { LiveDataDashboard } from '@/components/LiveDataDashboard';
-import { backgroundStoryService } from '@/lib/backgroundStoryService';
 
 export default function HomePage() {
   const [currentWeatherEvent, setCurrentWeatherEvent] = useState('Solar Activity Detected');
-  const [backgroundStoryStatus, setBackgroundStoryStatus] = useState('Initializing...');
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
     setHasMounted(true);
-    
-    // Initialize background story generation
-    backgroundStoryService.startBackgroundGeneration();
-    
-    // Listen for background story events
-    const handleBackgroundStory = (event: CustomEvent) => {
-      setBackgroundStoryStatus(`New story: "${event.detail.story.title}"`);
-      setTimeout(() => {
-        setBackgroundStoryStatus('Stories generating in background...');
-      }, 5000);
-    };
-
-    if (typeof window !== 'undefined') {
-      window.addEventListener('backgroundStoryGenerated', handleBackgroundStory as EventListener);
-    }
     
     // Simulate real-time weather updates
     const weatherEvents = [
@@ -45,22 +28,8 @@ export default function HomePage() {
       setCurrentWeatherEvent(weatherEvents[Math.floor(Math.random() * weatherEvents.length)]);
     }, 5000);
 
-    // Update background story status periodically
-    const statusInterval = setInterval(() => {
-      // const status = backgroundStoryService.getStatus();
-      // if (status.isRunning && !status.isGenerating) {
-      //   setBackgroundStoryStatus('Stories generating in background...');
-      // } else if (status.isGenerating) {
-      //   setBackgroundStoryStatus('Generating new story...');
-      // }
-    }, 10000);
-
     return () => {
       clearInterval(interval);
-      clearInterval(statusInterval);
-      if (typeof window !== 'undefined') {
-        window.removeEventListener('backgroundStoryGenerated', handleBackgroundStory as EventListener);
-      }
     };
   }, []);
 
