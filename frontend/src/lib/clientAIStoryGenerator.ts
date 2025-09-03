@@ -1,4 +1,6 @@
 // Client-side AI Story Generator - Using free AI models like AskAI section
+import { getFallbackStory, getAITroubleMessage, PreGeneratedStory } from './preGeneratedStories';
+
 interface Character {
   id: string;
   name: string;
@@ -69,11 +71,11 @@ class ClientAIStoryGenerator {
     return lengthPrompts[length as keyof typeof lengthPrompts] || lengthPrompts['medium'];
   }
 
-  async generateStory(config: StoryConfig): Promise<{ story: string; title: string; educationalFacts: string[] }> {
+  async generateStory(config: StoryConfig): Promise<{ story: string; title: string; educationalFacts: string[]; isPreGenerated?: boolean; troubleMessage?: any }> {
     // If no API key available, return fallback story immediately
     if (!this.apiKey) {
-      console.log('No API key available, using fallback story');
-      return this.generateFallbackStory(config);
+      console.log('No API key available, using pre-generated fallback story');
+      return this.generatePreGeneratedFallback(config);
     }
 
     const prompt = `Create a space weather story with the following requirements:
@@ -170,7 +172,8 @@ CRITICAL: You must respond with ONLY valid JSON and nothing else. No explanation
           story: parsedResponse.story,
           educationalFacts: Array.isArray(parsedResponse.educationalFacts) 
             ? parsedResponse.educationalFacts 
-            : this.getDefaultEducationalFacts(config.eventType)
+            : this.getDefaultEducationalFacts(config.eventType),
+          isPreGenerated: false
         };
 
       } catch (error) {
@@ -180,9 +183,47 @@ CRITICAL: You must respond with ONLY valid JSON and nothing else. No explanation
       }
     }
 
-    // If all AI models failed, use fallback
-    console.log('All AI models failed, using fallback story');
-    return this.generateFallbackStory(config);
+    // If all AI models failed, use pre-generated fallback
+    console.log('All AI models failed, using pre-generated fallback story');
+    return this.generatePreGeneratedFallback(config);
+  }
+
+  private generatePreGeneratedFallback(config: StoryConfig): { story: string; title: string; educationalFacts: string[]; isPreGenerated: boolean; troubleMessage: any } {
+    const troubleMessage = getAITroubleMessage();
+    const fallbackStory = getFallbackStory(
+      config.character.id,
+      config.mood || 'real_time',
+      config.ageGroup,
+      config.storySize,
+      config.eventType
+    );
+
+    if (fallbackStory) {
+      return {
+        title: fallbackStory.title,
+        story: fallbackStory.story,
+        educationalFacts: fallbackStory.educationalFacts,
+        isPreGenerated: true,
+        troubleMessage
+      };
+    }
+
+    // Ultimate fallback if no pre-generated story found
+    return {
+      title: "An Amazing Space Weather Adventure",
+      story: `Hi there! I'm ${config.character.name}, and I'm here to tell you about an incredible space weather event happening right now - a ${config.eventType}! 
+
+Even though our AI storyteller is taking a cosmic break among the stars, I can still share this amazing adventure with you. Space weather events like this ${config.eventType} are some of nature's most spectacular phenomena, connecting our Sun to Earth in ways that affect everything from beautiful aurora lights to the technology we use every day.
+
+This ${config.eventType} started on our Sun and traveled through the vast emptiness of space to reach Earth. It's a reminder that we live in a connected cosmic neighborhood where events on the Sun can influence life on our planet!
+
+Scientists around the world are monitoring this event and learning more about how space weather works. It's like having a real-time science experiment happening right above our heads!
+
+Keep looking up at the sky - you might see some beautiful effects if you're in the right location. Every space weather event teaches us something new about our amazing universe!`,
+      educationalFacts: this.getDefaultEducationalFacts(config.eventType),
+      isPreGenerated: true,
+      troubleMessage
+    };
   }
 
   private generateFallbackStory(config: StoryConfig): { story: string; title: string; educationalFacts: string[] } {

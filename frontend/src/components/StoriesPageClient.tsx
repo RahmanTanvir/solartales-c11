@@ -53,6 +53,8 @@ export default function StoriesPageClient() {
   const [storedStories, setStoredStories] = useState<any[]>([]);
   const [apiKey, setApiKey] = useState<string>('');
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [isPreGenerated, setIsPreGenerated] = useState(false);
+  const [troubleMessage, setTroubleMessage] = useState<any>(null);
   const { mostSignificantEvent, recentEvents } = useRealTimeSpaceWeather();
 
   const characters: Character[] = [
@@ -233,6 +235,8 @@ export default function StoriesPageClient() {
         
         setCurrentStory(cleanedStory);
         setEducationalFacts(generatedStory.educationalFacts);
+        setIsPreGenerated(generatedStory.isPreGenerated || false);
+        setTroubleMessage(generatedStory.troubleMessage || null);
         setShowStory(true);
         
         console.log('Story generated successfully:', {
@@ -273,27 +277,13 @@ export default function StoriesPageClient() {
       }
     } catch (error) {
       console.error('Error generating story:', error);
-      
-      // Show fallback story based on character and event
-      const fallbackStory = getFallbackStory(character, mostSignificantEvent?.eventType || 'solar_flare');
-      setCurrentStory(fallbackStory);
-      setEducationalFacts(generateEducationalFacts(mostSignificantEvent?.eventType || 'solar_flare'));
+      // The fallback is now handled inside the AI generator
+      setCurrentStory('Sorry, there was an error generating your story. Please try again!');
+      setEducationalFacts([]);
       setShowStory(true);
     } finally {
       setIsGenerating(false);
     }
-  };
-
-  const getFallbackStory = (character: Character, eventType: string): string => {
-    return `Hi there! I'm ${character.name}, and I'm here to tell you about an amazing space weather event happening right now - a ${eventType}! 
-
-Even though our AI storyteller is taking a break, I can still share this incredible cosmic adventure with you. Space weather events like this ${eventType} are some of nature's most spectacular phenomena, connecting our Sun to Earth in ways that affect everything from the beautiful aurora lights in the sky to the technology we use every day.
-
-This ${eventType} started on our Sun, traveled through the vast emptiness of space, and is now interacting with Earth's magnetic field in fascinating ways. It's a reminder that we live in a connected cosmic neighborhood where events on the Sun can influence life on our planet!
-
-Scientists around the world are monitoring this event and learning more about how space weather works. It's like having a real-time science experiment happening right above our heads!
-
-Keep looking up at the sky - you might see some beautiful aurora lights if you're in the right location. And remember, every space weather event teaches us something new about our amazing universe!`;
   };
 
   // Helper function to format story text for display
@@ -1124,6 +1114,42 @@ Keep looking up at the sky - you might see some beautiful aurora lights if you'r
                       </div>
                       <span className="text-sm">Now playing...</span>
                     </div>
+                  )}
+                  
+                  {/* AI Trouble Message */}
+                  {isPreGenerated && troubleMessage && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.5 }}
+                      className="mb-6 bg-gradient-to-br from-purple-800/40 to-pink-800/40 p-6 rounded-2xl border border-purple-400/30 backdrop-blur-sm"
+                    >
+                      <div className="flex items-center space-x-3 mb-4">
+                        <div className="text-4xl animate-bounce">
+                          {troubleMessage.emoji}
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-bold text-purple-300 mb-1">
+                            {troubleMessage.title}
+                          </h4>
+                          <div className="flex items-center space-x-2 text-purple-400 text-sm">
+                            <Sparkles className="w-4 h-4 animate-pulse" />
+                            <span>Pre-generated story</span>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-purple-100 leading-relaxed">
+                        {troubleMessage.message}
+                      </p>
+                      <div className="mt-4 flex items-center space-x-2 text-purple-300 text-sm">
+                        <div className="flex space-x-1">
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                          <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.6s' }}></div>
+                        </div>
+                        <span>AI will return soon!</span>
+                      </div>
+                    </motion.div>
                   )}
                   
                   <div className="prose prose-invert prose-lg max-w-none">
