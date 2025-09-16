@@ -7,31 +7,24 @@ import Navigation from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
 import { FeaturesSection } from '@/components/FeatureCard';
 import { LiveDataDashboard } from '@/components/LiveDataDashboard';
+import SunCharacter from '@/components/SunCharacter';
+import SolarAdventureButton from '@/components/SolarAdventureButton';
+import { useSunMood } from '@/hooks/useSunMood';
 
 export default function HomePage() {
   const [currentWeatherEvent, setCurrentWeatherEvent] = useState('Solar Activity Detected');
   const [hasMounted, setHasMounted] = useState(false);
+  const { mood, analysis, isLoading, refreshMood } = useSunMood();
 
   useEffect(() => {
     setHasMounted(true);
     
-    // Simulate real-time weather updates
-    const weatherEvents = [
-      'Solar Flare Incoming',
-      'Aurora Activity High', 
-      'Geomagnetic Storm Active',
-      'Coronal Mass Ejection Detected',
-      'Solar Wind Fluctuations'
-    ];
-    
-    const interval = setInterval(() => {
-      setCurrentWeatherEvent(weatherEvents[Math.floor(Math.random() * weatherEvents.length)]);
-    }, 5000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    // Update weather event based on sun mood analysis
+    if (analysis) {
+      const event = analysis.reasons[0] || 'Solar Activity Detected';
+      setCurrentWeatherEvent(event);
+    }
+  }, [analysis]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -41,85 +34,82 @@ export default function HomePage() {
       {/* Hero Section */}
       <main className="flex-1 pt-20">
         <div className="max-w-7xl mx-auto px-4 py-12">
-          <div className="text-center mb-16">
-            {hasMounted ? (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8 }}
-              >
-                <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                  <span className="text-gradient">Experience Space</span>
-                  <br />
-                  <span className="text-white">Through Stories</span>
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto">
-                  Journey through the cosmos with real-time space weather data transformed into 
-                  immersive, educational stories. Witness solar flares, aurora displays, and 
-                  cosmic events through the eyes of astronauts, scientists, and space explorers.
-                </p>
-              </motion.div>
-            ) : (
-              <div>
-                <h1 className="text-5xl md:text-7xl font-bold mb-6">
-                  <span className="text-gradient">Experience Space</span>
-                  <br />
-                  <span className="text-white">Through Stories</span>
-                </h1>
-                <p className="text-xl md:text-2xl text-gray-300 mb-8 max-w-4xl mx-auto">
-                  Journey through the cosmos with real-time space weather data transformed into 
-                  immersive, educational stories. Witness solar flares, aurora displays, and 
-                  cosmic events through the eyes of astronauts, scientists, and space explorers.
-                </p>
-              </div>
-            )}
+          {/* Sun Character Section */}
+          <div className="flex flex-col lg:flex-row items-center justify-between mb-16 gap-8">
+            {/* Sun Character */}
+            <div className="lg:w-1/2 flex justify-center">
+              {hasMounted && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                >
+                  <SunCharacter
+                    mood={mood}
+                    size="large"
+                    showDialogue={true}
+                    onSunClick={refreshMood}
+                    className="cursor-pointer"
+                  />
+                </motion.div>
+              )}
+              {!hasMounted && (
+                <div className="w-80 h-80 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse" />
+              )}
+            </div>
 
+            {/* Title and Description */}
+            <div className="lg:w-1/2 text-center lg:text-left">
+              {hasMounted ? (
+                <motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, delay: 0.3 }}
+                >
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+                    <span className="text-gradient">Experience Space</span>
+                    <br />
+                    <span className="text-white">Through Stories</span>
+                  </h1>
+                  <p className="text-lg md:text-xl text-gray-300 mb-6">
+                    Journey through the cosmos with real-time space weather data transformed into 
+                    immersive, educational stories. Our friendly Sun companion reacts to live solar activity,
+                    making space science engaging and accessible.
+                  </p>
+                </motion.div>
+              ) : (
+                <div>
+                  <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6">
+                    <span className="text-gradient">Experience Space</span>
+                    <br />
+                    <span className="text-white">Through Stories</span>
+                  </h1>
+                  <p className="text-lg md:text-xl text-gray-300 mb-8">
+                    Journey through the cosmos with real-time space weather data transformed into 
+                    immersive, educational stories. Our friendly Sun companion reacts to live solar activity,
+                    making space science engaging and accessible.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="text-center mb-16">
             {hasMounted ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.8, delay: 0.3 }}
-                className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+                transition={{ duration: 0.8, delay: 0.6 }}
+                className="flex justify-center items-center"
               >
-                <Link 
-                  href="/stories"
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-                >
-                  🚀 Start Your AI Story Journey
-                </Link>
-                <Link 
-                  href="/data"
-                  className="glass px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/20 transition-all duration-300"
-                >
-                  View Live Data
-                </Link>
-                <Link 
-                  href="/about"
-                  className="border border-blue-400 text-blue-400 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-400 hover:text-white transition-all duration-300"
-                >
-                  Learn More
-                </Link>
+                <SolarAdventureButton />
               </motion.div>
             ) : (
-              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <a 
-                  href="/stories"
-                  className="bg-gradient-to-r from-blue-500 to-purple-600 px-8 py-4 rounded-xl text-lg font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-                >
-                  🚀 Start Your AI Story Journey
-                </a>
-                <a 
-                  href="/data"
-                  className="glass px-8 py-4 rounded-xl text-lg font-semibold hover:bg-white/20 transition-all duration-300"
-                >
-                  View Live Data
-                </a>
-                <a 
-                  href="/about"
-                  className="border border-blue-400 text-blue-400 px-8 py-4 rounded-xl text-lg font-semibold hover:bg-blue-400 hover:text-white transition-all duration-300"
-                >
-                  Learn More
-                </a>
+              <div className="flex justify-center items-center">
+                <div className="bg-gradient-to-r from-purple-600 to-blue-500 px-12 py-6 rounded-full text-xl font-bold text-white animate-pulse">
+                  ✨ Start My Solar Adventure! ✨
+                </div>
               </div>
             )}
           </div>
