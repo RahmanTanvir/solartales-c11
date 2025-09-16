@@ -154,6 +154,71 @@
   to { transform: rotate(360deg) translateX(100px) rotate(-360deg); }
 }
 
+/* Feature Planets Enhancements */
+.planet-float {
+  animation: planetFloat 6s ease-in-out infinite;
+}
+
+@keyframes planetFloat {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  50% { transform: translateY(-5px) rotate(0deg); }
+  75% { transform: translateY(-15px) rotate(-1deg); }
+}
+
+.cosmic-glow-planet {
+  animation: cosmicGlowPlanet 4s ease-in-out infinite alternate;
+}
+
+@keyframes cosmicGlowPlanet {
+  0% { 
+    box-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.3),
+      inset 0 0 20px rgba(255, 255, 255, 0.1);
+  }
+  100% { 
+    box-shadow: 
+      0 0 40px rgba(255, 255, 255, 0.5),
+      inset 0 0 30px rgba(255, 255, 255, 0.2);
+  }
+}
+
+.twinkle-stars {
+  animation: twinkleStars 3s ease-in-out infinite;
+}
+
+@keyframes twinkleStars {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.comet-trail {
+  animation: cometTrail 0.8s ease-out;
+}
+
+@keyframes cometTrail {
+  0% { transform: scaleX(0); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0.3; }
+}
+
+.title-sparkle {
+  animation: titleSparkle 4s ease-in-out infinite;
+}
+
+@keyframes titleSparkle {
+  0%, 100% { 
+    text-shadow: 
+      0 0 10px rgba(255, 255, 255, 0.5),
+      0 0 20px rgba(168, 85, 247, 0.3);
+  }
+  50% { 
+    text-shadow: 
+      0 0 20px rgba(255, 255, 255, 0.8),
+      0 0 40px rgba(168, 85, 247, 0.6),
+      0 0 60px rgba(59, 130, 246, 0.4);
+  }
+}
+
 /* Era-Specific Theme Styles */
 
 /* Victorian Era Styling */
