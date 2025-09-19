@@ -34,74 +34,76 @@ export default function SolarAdventureButton() {
 
   const handleClick = () => {
     setIsClicked(true);
-    setTimeout(() => setIsClicked(false), 600);
+    // Animation will trigger but navigation happens immediately via Link
   };
 
-  // Orbiting planets data
+  // Orbiting planets data - responsive sizes
   const planets = [
-    { size: 8, orbit: 100, speed: 20, color: '#FF6B6B', delay: 0 },
-    { size: 6, orbit: 110, speed: 15, color: '#4ECDC4', delay: 5 },
-    { size: 4, orbit: 90, speed: 25, color: '#45B7D1', delay: 10 },
+    { size: 6, orbit: 80, speed: 20, color: '#FF6B6B', delay: 0 },
+    { size: 4, orbit: 90, speed: 15, color: '#4ECDC4', delay: 5 },
+    { size: 3, orbit: 70, speed: 25, color: '#45B7D1', delay: 10 },
   ];
 
   return (
-    <div className="relative">
-      {/* Orbiting Planets */}
-      {planets.map((planet, index) => (
-        <motion.div
-          key={index}
-          className="absolute top-1/2 left-1/2 pointer-events-none"
-          style={{
-            width: planet.orbit * 2,
-            height: planet.orbit * 2,
-            marginTop: -planet.orbit,
-            marginLeft: -planet.orbit,
-          }}
-          animate={{ rotate: 360 }}
-          transition={{
-            duration: planet.speed,
-            repeat: Infinity,
-            ease: 'linear',
-            delay: planet.delay,
-          }}
-        >
+    <div className="relative w-full flex justify-center">
+      {/* Orbiting Planets - Hidden on very small screens */}
+      <div className="hidden sm:block">
+        {planets.map((planet, index) => (
           <motion.div
-            className="absolute top-0 left-1/2 rounded-full opacity-60"
+            key={index}
+            className="absolute top-1/2 left-1/2 pointer-events-none"
             style={{
-              width: planet.size,
-              height: planet.size,
-              marginLeft: -planet.size / 2,
-              backgroundColor: planet.color,
-              boxShadow: `0 0 ${planet.size}px ${planet.color}40`,
+              width: planet.orbit * 2,
+              height: planet.orbit * 2,
+              marginTop: -planet.orbit,
+              marginLeft: -planet.orbit,
             }}
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.6, 0.9, 0.6],
-            }}
+            animate={{ rotate: 360 }}
             transition={{
-              duration: 2,
+              duration: planet.speed,
               repeat: Infinity,
-              ease: 'easeInOut',
+              ease: 'linear',
+              delay: planet.delay,
             }}
-          />
-        </motion.div>
-      ))}
+          >
+            <motion.div
+              className="absolute top-0 left-1/2 rounded-full opacity-60"
+              style={{
+                width: planet.size,
+                height: planet.size,
+                marginLeft: -planet.size / 2,
+                backgroundColor: planet.color,
+                boxShadow: `0 0 ${planet.size}px ${planet.color}40`,
+              }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.6, 0.9, 0.6],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+                ease: 'easeInOut',
+              }}
+            />
+          </motion.div>
+        ))}
+      </div>
 
-      {/* Shooting Star */}
+      {/* Shooting Star - Responsive positioning */}
       <AnimatePresence>
         {showShootingStar && (
           <motion.div
-            className="absolute top-0 left-0 pointer-events-none"
+            className="absolute top-0 left-0 pointer-events-none hidden sm:block"
             initial={{ x: -50, y: 20, opacity: 0 }}
-            animate={{ x: 200, y: -20, opacity: [0, 1, 0] }}
+            animate={{ x: 150, y: -20, opacity: [0, 1, 0] }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
           >
-            <div className="w-2 h-2 bg-yellow-300 rounded-full shadow-lg">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-yellow-300 rounded-full shadow-lg">
               <div className="absolute inset-0 bg-yellow-300 rounded-full animate-ping"></div>
             </div>
             <motion.div
-              className="absolute top-1/2 right-full w-8 h-0.5 bg-gradient-to-r from-transparent to-yellow-300"
+              className="absolute top-1/2 right-full w-6 sm:w-8 h-0.5 bg-gradient-to-r from-transparent to-yellow-300"
               animate={{ scaleX: [0, 1, 0] }}
               transition={{ duration: 0.8 }}
             />
@@ -150,16 +152,16 @@ export default function SolarAdventureButton() {
       </AnimatePresence>
 
       {/* Main Button */}
-      <Link href="/stories">
+      <Link href="/stories" className="block">
         <motion.button
-          className="relative overflow-hidden px-12 py-6 rounded-full text-xl font-bold text-white cursor-pointer group"
+          className="relative overflow-hidden px-6 sm:px-8 md:px-12 py-4 sm:py-5 md:py-6 rounded-full text-lg sm:text-xl font-bold text-white cursor-pointer group w-full max-w-xs sm:max-w-sm md:max-w-md mx-auto"
           style={{
             background: 'linear-gradient(135deg, #6B46C1 0%, #3B82F6 50%, #FDE047 100%)',
             backgroundSize: '200% 200%',
-            filter: 'drop-shadow(0 8px 32px rgba(107, 70, 193, 0.3))',
+            filter: 'drop-shadow(0 4px 16px rgba(107, 70, 193, 0.3)) drop-shadow(0 8px 32px rgba(107, 70, 193, 0.2))',
           }}
           animate={{
-            scale: isClicked ? [1, 0.95, 1.05, 1] : [1, 1.05, 1],
+            scale: isClicked ? [1, 0.95, 1.05, 1] : [1, 1.02, 1],
             backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
             boxShadow: isHovered
               ? [
@@ -168,9 +170,9 @@ export default function SolarAdventureButton() {
                   '0 8px 32px rgba(107, 70, 193, 0.4)',
                 ]
               : [
-                  '0 8px 32px rgba(107, 70, 193, 0.3)',
-                  '0 10px 36px rgba(107, 70, 193, 0.4)',
-                  '0 8px 32px rgba(107, 70, 193, 0.3)',
+                  '0 4px 16px rgba(107, 70, 193, 0.3)',
+                  '0 8px 24px rgba(107, 70, 193, 0.4)',
+                  '0 4px 16px rgba(107, 70, 193, 0.3)',
                 ],
           }}
           transition={{
@@ -180,7 +182,8 @@ export default function SolarAdventureButton() {
             backgroundPosition: { duration: 8, repeat: Infinity, ease: 'linear' },
             boxShadow: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
           }}
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.98 }}
           onHoverStart={() => setIsHovered(true)}
           onHoverEnd={() => setIsHovered(false)}
           onClick={handleClick}
@@ -201,7 +204,7 @@ export default function SolarAdventureButton() {
 
           {/* Button Text */}
           <motion.span
-            className="relative z-10 flex items-center gap-2"
+            className="relative z-10 flex items-center justify-center gap-1 sm:gap-2 text-center"
             animate={{
               y: isHovered ? [0, -1, 0] : 0,
             }}
@@ -211,7 +214,9 @@ export default function SolarAdventureButton() {
               ease: 'easeInOut',
             }}
           >
-            ✨ Start My Solar Adventure! ✨
+            <span className="hidden sm:inline">✨</span>
+            <span className="px-1">Start My Solar Adventure!</span>
+            <span className="hidden sm:inline">✨</span>
           </motion.span>
 
           {/* Sparkle Overlay */}
