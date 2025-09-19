@@ -7,6 +7,8 @@ import { SolarSystemVisualization } from '@/components/SolarSystemVisualization'
 import { AlertSystem } from '@/components/AlertSystem';
 import { GlobalImpactVisualizer } from '@/components/GlobalImpactVisualizer';
 import { WebAudioFeatures } from '@/components/WebAudioFeatures';
+import DataExplainerButton from '@/components/DataExplainerButton';
+import DataExplainerComic from '@/components/DataExplainerComic';
 import { BarChart3, Activity, Zap, Wind, Globe, RefreshCw, Calendar, TrendingUp, MapPin } from 'lucide-react';
 
 interface WeatherMetric {
@@ -37,6 +39,7 @@ export default function DataPage() {
   const [historicalData, setHistoricalData] = useState<HistoricalData[]>([]);
   const [showGlobalImpact, setShowGlobalImpact] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showDataComic, setShowDataComic] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -188,6 +191,16 @@ export default function DataPage() {
                 <span>{mounted ? lastUpdate.toLocaleDateString() : '--/--/----'}</span>
               </div>
             </div>
+          </motion.div>
+
+          {/* Data Explainer Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-8"
+          >
+            <DataExplainerButton onClick={() => setShowDataComic(true)} />
           </motion.div>
 
           {/* Solar System Visualization */}
@@ -345,6 +358,14 @@ export default function DataPage() {
           </motion.div>
         </div>
       </main>
+
+      {/* Data Explainer Comic */}
+      <DataExplainerComic
+        isOpen={showDataComic}
+        onClose={() => setShowDataComic(false)}
+        currentMetrics={metrics}
+        historicalData={historicalData}
+      />
     </div>
   );
 }
