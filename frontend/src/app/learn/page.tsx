@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Navigation from '@/components/Navigation';
+import QuizComponent from '@/components/QuizComponent';
+import PathRecommendationQuiz from '@/components/PathRecommendationQuiz';
 import { 
   Sun, 
   Earth, 
@@ -29,6 +31,15 @@ import {
   Pause
 } from 'lucide-react';
 
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  difficulty?: 'easy' | 'medium' | 'hard';
+}
+
 interface Topic {
   id: string;
   title: string;
@@ -48,6 +59,7 @@ interface Topic {
     };
     funFacts: string[];
     realWorldExample: string;
+    quiz: QuizQuestion[];
   };
 }
 
@@ -156,7 +168,61 @@ export default function LearnPage() {
           'The Sun\'s core is 27 million degrees Fahrenheit!',
           'Every second, the Sun converts 4 million tons of matter into energy'
         ],
-        realWorldExample: 'When you feel warm sunshine on your face, you\'re experiencing energy that traveled 93 million miles from the Sun to reach you!'
+        realWorldExample: 'When you feel warm sunshine on your face, you\'re experiencing energy that traveled 93 million miles from the Sun to reach you!',
+        quiz: [
+          {
+            id: 'sun-basics-1',
+            question: 'What process powers the Sun and generates its energy?',
+            options: [
+              'Chemical combustion of hydrogen',
+              'Nuclear fusion of hydrogen into helium',
+              'Gravitational compression',
+              'Magnetic field interactions'
+            ],
+            correctAnswer: 1,
+            explanation: 'Nuclear fusion is the process where hydrogen nuclei combine to form helium in the Sun\'s core, releasing massive amounts of energy that eventually reach us as sunlight.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'sun-basics-2',
+            question: 'How long is the complete solar activity cycle?',
+            options: [
+              '7 years',
+              '11 years',
+              '22 years',
+              '25 years'
+            ],
+            correctAnswer: 1,
+            explanation: 'The solar cycle is approximately 11 years long, during which the Sun goes from solar minimum (few sunspots) to solar maximum (many sunspots) and back to solar minimum.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'sun-basics-3',
+            question: 'Why do sunspots appear darker than the surrounding solar surface?',
+            options: [
+              'They are holes in the Sun\'s surface',
+              'They contain different chemical elements',
+              'Intense magnetic fields suppress convection, making them cooler',
+              'They are shadows cast by solar prominences'
+            ],
+            correctAnswer: 2,
+            explanation: 'Sunspots appear dark because intense magnetic fields in these regions suppress the normal convection process, making them about 1500°C cooler than the surrounding photosphere.',
+            difficulty: 'medium'
+          },
+          {
+            id: 'sun-basics-4',
+            question: 'What happens when the Sun\'s twisted magnetic field lines suddenly snap and reconnect?',
+            options: [
+              'The Sun\'s rotation slows down',
+              'New sunspots are formed',
+              'Solar storms like flares and CMEs can be unleashed',
+              'The solar cycle resets to zero'
+            ],
+            correctAnswer: 2,
+            explanation: 'When twisted magnetic field lines snap and reconnect through magnetic reconnection, they release enormous amounts of energy that can create solar storms including solar flares and coronal mass ejections.',
+            difficulty: 'hard'
+          }
+        ]
       }
     },
     {
@@ -236,7 +302,61 @@ export default function LearnPage() {
           'During a solar flare, the Sun releases as much energy as it normally does in 10 billion years!',
           'Solar flares can make the northern lights visible much further south than usual'
         ],
-        realWorldExample: 'In 1859, a massive solar flare caused telegraph wires to spark and catch fire. Some telegraph operators could disconnect their power and still send messages using just the energy from the aurora!'
+        realWorldExample: 'In 1859, a massive solar flare caused telegraph wires to spark and catch fire. Some telegraph operators could disconnect their power and still send messages using just the energy from the aurora!',
+        quiz: [
+          {
+            id: 'solar-flares-1',
+            question: 'What process triggers a solar flare?',
+            options: [
+              'Nuclear fusion reactions',
+              'Magnetic reconnection',
+              'Gravitational collapse',
+              'Chemical explosions'
+            ],
+            correctAnswer: 1,
+            explanation: 'Solar flares are triggered by magnetic reconnection, where twisted magnetic field lines in the Sun\'s atmosphere suddenly realign and release massive amounts of energy.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'solar-flares-2',
+            question: 'Which solar flare class is the most powerful?',
+            options: [
+              'C-class',
+              'M-class',
+              'X-class',
+              'Z-class'
+            ],
+            correctAnswer: 2,
+            explanation: 'X-class flares are the most powerful classification, based on peak X-ray flux measurements. They can cause significant radio blackouts and other space weather effects.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'solar-flares-3',
+            question: 'How do solar flares cause radio blackouts on Earth?',
+            options: [
+              'They destroy radio satellites in space',
+              'They heat up radio antennas',
+              'They increase ionization in Earth\'s ionosphere, causing radio absorption',
+              'They create magnetic storms that deflect radio waves'
+            ],
+            correctAnswer: 2,
+            explanation: 'Solar flares produce high-energy X-rays and UV radiation that increase ionization in Earth\'s ionosphere. This enhanced ionization causes radio signals to be absorbed rather than reflected, creating radio blackouts.',
+            difficulty: 'medium'
+          },
+          {
+            id: 'solar-flares-4',
+            question: 'What satellite system provides the X-ray flux measurements used to classify solar flares?',
+            options: [
+              'Hubble Space Telescope',
+              'International Space Station',
+              'GOES satellites',
+              'GPS satellites'
+            ],
+            correctAnswer: 2,
+            explanation: 'GOES (Geostationary Operational Environmental Satellites) continuously monitor the Sun\'s X-ray output and provide the real-time measurements used to classify solar flares into C-, M-, and X-classes.',
+            difficulty: 'hard'
+          }
+        ]
       }
     },
     {
@@ -312,7 +432,61 @@ export default function LearnPage() {
           'Auroras can make sounds - some people hear crackling or whooshing noises',
           'An aurora can release as much energy as a magnitude 5.5 earthquake!'
         ],
-        realWorldExample: 'In March 1989, a geomagnetic storm caused auroras to be visible as far south as Florida and Cuba, and even caused a power outage in Quebec, Canada!'
+        realWorldExample: 'In March 1989, a geomagnetic storm caused auroras to be visible as far south as Florida and Cuba, and even caused a power outage in Quebec, Canada!',
+        quiz: [
+          {
+            id: 'auroras-1',
+            question: 'What causes the beautiful colors in auroras?',
+            options: [
+              'Reflection of sunlight from ice crystals',
+              'Charged particles colliding with atmospheric gases',
+              'Lightning in the upper atmosphere',
+              'Refraction of light through water vapor'
+            ],
+            correctAnswer: 1,
+            explanation: 'Auroras occur when charged particles from the solar wind collide with gases in Earth\'s atmosphere, exciting atoms to higher energy states. When they return to their ground state, they emit photons of specific colors.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'auroras-2',
+            question: 'What gas is primarily responsible for the green color commonly seen in auroras?',
+            options: [
+              'Nitrogen',
+              'Helium',
+              'Oxygen',
+              'Hydrogen'
+            ],
+            correctAnswer: 2,
+            explanation: 'Oxygen atoms at altitudes around 100-300 km produce the characteristic green aurora color when excited by charged particles. Higher altitude oxygen can produce red colors.',
+            difficulty: 'medium'
+          },
+          {
+            id: 'auroras-3',
+            question: 'Where do auroras typically appear on Earth?',
+            options: [
+              'Only at the North Pole',
+              'Randomly across all latitudes',
+              'In oval-shaped zones around the magnetic poles',
+              'Only during solar eclipses'
+            ],
+            correctAnswer: 2,
+            explanation: 'Auroras typically appear in oval-shaped zones called auroral ovals around both magnetic poles. During geomagnetic storms, these ovals can expand toward lower latitudes.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'auroras-4',
+            question: 'Why do auroras become more visible at lower latitudes during intense geomagnetic storms?',
+            options: [
+              'The storms create more charged particles',
+              'The auroral oval expands toward the equator',
+              'The atmosphere becomes thinner during storms',
+              'Storm clouds reflect the aurora light better'
+            ],
+            correctAnswer: 1,
+            explanation: 'During intense geomagnetic storms, the auroral ovals expand toward lower latitudes as Earth\'s magnetosphere becomes more compressed and disturbed, allowing charged particles to penetrate further from the poles.',
+            difficulty: 'hard'
+          }
+        ]
       }
     },
     {
@@ -389,7 +563,61 @@ export default function LearnPage() {
           'Mars lost most of its magnetic field billions of years ago',
           'Earth\'s magnetic field has completely flipped many times in the past'
         ],
-        realWorldExample: 'When you use a compass, the needle points to Earth\'s magnetic north pole, which is actually different from the geographic North Pole!'
+        realWorldExample: 'When you use a compass, the needle points to Earth\'s magnetic north pole, which is actually different from the geographic North Pole!',
+        quiz: [
+          {
+            id: 'magnetic-field-1',
+            question: 'What generates Earth\'s magnetic field?',
+            options: [
+              'Iron deposits in the crust',
+              'Molten iron movement in the outer core',
+              'Solar wind interactions',
+              'Rotation of the solid inner core'
+            ],
+            correctAnswer: 1,
+            explanation: 'Earth\'s magnetic field is generated by the movement of molten iron in the outer core, creating electric currents that produce magnetic fields through a process called the geodynamo.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'magnetic-field-2',
+            question: 'What are the Van Allen radiation belts?',
+            options: [
+              'Regions where Earth\'s atmosphere is thickest',
+              'Zones of trapped charged particles around Earth',
+              'Areas where auroras are most common',
+              'Magnetic field lines that connect to the Sun'
+            ],
+            correctAnswer: 1,
+            explanation: 'The Van Allen radiation belts are regions around Earth where charged particles from the solar wind are trapped by Earth\'s magnetic field, forming donut-shaped zones of radiation.',
+            difficulty: 'medium'
+          },
+          {
+            id: 'magnetic-field-3',
+            question: 'How does Earth\'s magnetosphere protect us from space weather?',
+            options: [
+              'It absorbs all solar radiation',
+              'It deflects charged particles around Earth',
+              'It creates a physical barrier in space',
+              'It generates counter-radiation to cancel solar energy'
+            ],
+            correctAnswer: 1,
+            explanation: 'The magnetosphere deflects most charged particles from the solar wind around Earth, preventing them from directly hitting our atmosphere and surface. Only some particles can enter at the polar regions.',
+            difficulty: 'easy'
+          },
+          {
+            id: 'magnetic-field-4',
+            question: 'What happens to Earth\'s magnetosphere during a geomagnetic storm?',
+            options: [
+              'It expands outward from Earth',
+              'It completely disappears temporarily',
+              'It becomes compressed and distorted',
+              'It reverses its polarity'
+            ],
+            correctAnswer: 2,
+            explanation: 'During geomagnetic storms, increased solar wind pressure compresses Earth\'s magnetosphere on the sunward side and stretches it into a long tail on the night side, allowing more particles to penetrate.',
+            difficulty: 'hard'
+          }
+        ]
       }
     },
     {
@@ -470,7 +698,8 @@ export default function LearnPage() {
           'The International Space Station carries extra radiation shielding specifically for space weather events',
           'Some modern cars have over 100 microprocessors that could be affected by space weather'
         ],
-        realWorldExample: 'In October 2003, space weather caused 47 commercial flights to reroute away from polar regions, and GPS-guided farm equipment in the Midwest experienced significant positioning errors during harvest season.'
+        realWorldExample: 'In October 2003, space weather caused 47 commercial flights to reroute away from polar regions, and GPS-guided farm equipment in the Midwest experienced significant positioning errors during harvest season.',
+        quiz: []
       }
     },
     {
@@ -552,7 +781,8 @@ export default function LearnPage() {
           'The 1859 Carrington Event CME was so powerful it caused telegraph lines to spark',
           'CMEs occur most frequently during solar maximum, with several per day possible'
         ],
-        realWorldExample: 'In March 1989, a CME caused a 9-hour blackout in Quebec, Canada, affecting 6 million people and costing millions of dollars.'
+        realWorldExample: 'In March 1989, a CME caused a 9-hour blackout in Quebec, Canada, affecting 6 million people and costing millions of dollars.',
+        quiz: []
       }
     },
     {
@@ -632,7 +862,8 @@ export default function LearnPage() {
           'The Kp index is updated every 3 hours using global magnetometer networks',
           'GOES satellites orbit at the same speed as Earth\'s rotation, staying above the same location'
         ],
-        realWorldExample: 'Airlines use real-time space weather data to reroute polar flights when radiation levels spike, protecting passengers and crew from excess cosmic ray exposure.'
+        realWorldExample: 'Airlines use real-time space weather data to reroute polar flights when radiation levels spike, protecting passengers and crew from excess cosmic ray exposure.',
+        quiz: []
       }
     },
     {
@@ -713,7 +944,8 @@ export default function LearnPage() {
           'S-scale events are most dangerous for astronauts and airline passengers at high altitudes',
           'Most space weather events are G1 or G2 - relatively mild'
         ],
-        realWorldExample: 'The March 1989 Quebec blackout was caused by a G4 geomagnetic storm, demonstrating how even "severe" (not extreme) ratings can have major infrastructure impacts.'
+        realWorldExample: 'The March 1989 Quebec blackout was caused by a G4 geomagnetic storm, demonstrating how even "severe" (not extreme) ratings can have major infrastructure impacts.',
+        quiz: []
       }
     },
     {
@@ -795,7 +1027,8 @@ export default function LearnPage() {
           'ACE satellite has provided over 25 years of continuous solar wind monitoring',
           'STEREO spacecraft revealed the 3D structure of CMEs for the first time'
         ],
-        realWorldExample: 'During the July 2012 "Carrington-class" solar storm, STEREO satellites provided crucial 3D observations that helped scientists understand what would have been the most severe space weather event in modern history if it had hit Earth.'
+        realWorldExample: 'During the July 2012 "Carrington-class" solar storm, STEREO satellites provided crucial 3D observations that helped scientists understand what would have been the most severe space weather event in modern history if it had hit Earth.',
+        quiz: []
       }
     },
     {
@@ -876,7 +1109,8 @@ export default function LearnPage() {
           'During the 2008-2009 minimum, the Sun was spotless for 260 days - almost 71% of the time!',
           'The Maunder Minimum coincided with Europe\'s "Little Ice Age" though the connection is debated'
         ],
-        realWorldExample: 'NASA uses solar cycle predictions to time major missions - the Hubble Space Telescope was launched near solar minimum to minimize radiation exposure during deployment.'
+        realWorldExample: 'NASA uses solar cycle predictions to time major missions - the Hubble Space Telescope was launched near solar minimum to minimize radiation exposure during deployment.',
+        quiz: []
       }
     },
     {
@@ -957,7 +1191,8 @@ export default function LearnPage() {
           'Computer models can simulate the entire journey from Sun to Earth in 3D',
           'AI models can now detect solar flares faster than human forecasters'
         ],
-        realWorldExample: 'In October 2003, forecasters successfully predicted a series of major space weather events, helping airlines reroute flights and power companies prepare protective measures, preventing millions of dollars in damage.'
+        realWorldExample: 'In October 2003, forecasters successfully predicted a series of major space weather events, helping airlines reroute flights and power companies prepare protective measures, preventing millions of dollars in damage.',
+        quiz: []
       }
     },
     {
@@ -1038,7 +1273,8 @@ export default function LearnPage() {
           'Space climate changes can affect atmospheric chemistry and ozone production',
           'Scientists study ice cores from Greenland to learn about ancient space climate'
         ],
-        realWorldExample: 'The Maunder Minimum (1645-1715) was a period of very few sunspots that coincided with unusually cold weather in Europe, demonstrating how space climate can influence terrestrial climate patterns.'
+        realWorldExample: 'The Maunder Minimum (1645-1715) was a period of very few sunspots that coincided with unusually cold weather in Europe, demonstrating how space climate can influence terrestrial climate patterns.',
+        quiz: []
       }
     },
     {
@@ -1118,7 +1354,8 @@ export default function LearnPage() {
           'Space weather affects everything from farming GPS to financial trading systems',
           'New careers in space weather are being created as our technology becomes more vulnerable'
         ],
-        realWorldExample: 'Dr. Tamitha Skov, known as the "Space Weather Woman," combines research expertise with social media outreach to make space weather accessible to millions of people worldwide.'
+        realWorldExample: 'Dr. Tamitha Skov, known as the "Space Weather Woman," combines research expertise with social media outreach to make space weather accessible to millions of people worldwide.',
+        quiz: []
       }
     }
   ];
@@ -1796,6 +2033,13 @@ export default function LearnPage() {
                         </div>
                       </div>
 
+                      {/* Mini Quiz */}
+                      <QuizComponent 
+                        questions={selectedTopic.content.quiz}
+                        topicTitle={selectedTopic.title}
+                        topicColor={selectedTopic.color}
+                      />
+
                       {/* Ask AI Expert */}
                       <div>
                         <h3 className="text-xl font-bold mb-4 text-purple-400 flex items-center">
@@ -1891,6 +2135,16 @@ export default function LearnPage() {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Path Recommendation Quiz */}
+              <PathRecommendationQuiz 
+                onPathRecommendation={(pathId) => {
+                  setSelectedPath(pathId);
+                  setCurrentLessonIndex(0);
+                  setIsInPathMode(true);
+                }}
+                learningPaths={learningPaths}
+              />
             </motion.div>
           )}
 
@@ -2123,6 +2377,13 @@ export default function LearnPage() {
                               <p className="text-gray-300 leading-relaxed">{currentTopic.content.realWorldExample}</p>
                             </div>
                           </div>
+
+                          {/* Mini Quiz */}
+                          <QuizComponent 
+                            questions={currentTopic.content.quiz}
+                            topicTitle={currentTopic.title}
+                            topicColor={currentTopic.color}
+                          />
 
                           {/* Ask AI Expert */}
                           <div>
