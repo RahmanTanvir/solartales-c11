@@ -93,139 +93,89 @@ const kidFriendlyExplanations: Record<SunMood, string[]> = {
 };
 
 const SunFace: React.FC<{ mood: SunMood; sunSize: number }> = ({ mood, sunSize }) => {
-  const centerX = sunSize / 2;
-  const centerY = sunSize / 2;
-  const faceRadius = sunSize * 0.25; // Face should fit within the sun circle
+  // Scale coordinates to match the sun size (using same scaling as visualizer)
+  const scale = sunSize / 200; // Original viewBox was 0 0 200 200
   
-  const getEyeExpression = () => {
-    switch (mood) {
+  // Map homepage moods to appropriate expressions - PROPER SMILE RULES: Only smile when safe!
+  const getFaceExpression = () => {
+    switch(mood) {
       case 'calm':
-        return { eyeShape: 'circle', eyebrowY: 0, pupilSize: 0.4 };
-      case 'flare':
-        return { eyeShape: 'ellipse', eyebrowY: -3, pupilSize: 0.5 };
+        return {
+          eyeType: 'closed', // Peaceful, sleeping
+          mouthType: 'peaceful' // ✅ SAFE - gentle smile okay
+        };
+      case 'flare': 
+        return {
+          eyeType: 'bright', // Energetic but cautious
+          mouthType: 'neutral' // ⚠️ MINOR RISK - neutral expression (flares can disrupt satellites)
+        };
       case 'storm':
-        return { eyeShape: 'circle', eyebrowY: -2, pupilSize: 0.45 };
+        return {
+          eyeType: 'normal', // Steady
+          mouthType: 'slight-smile' // ✅ MOSTLY SAFE - slight smile (beautiful auroras, minor effects)
+        };
       case 'radiation':
-        return { eyeShape: 'ellipse', eyebrowY: 3, pupilSize: 0.3 };
+        return {
+          eyeType: 'intense', // Worried
+          mouthType: 'concerned' // ❌ DANGEROUS - no smiling (astronauts at risk)
+        };
       case 'extreme':
-        return { eyeShape: 'ellipse', eyebrowY: -4, pupilSize: 0.25 };
+        return {
+          eyeType: 'alert', // Very alert
+          mouthType: 'worried' // ❌ VERY DANGEROUS - definitely no smiling (power grids, satellites at risk)
+        };
     }
   };
 
-  const getMouthExpression = () => {
-    const mouthY = centerY + faceRadius * 0.3;
-    const mouthWidth = faceRadius * 0.6;
-    const leftX = centerX - mouthWidth / 2;
-    const rightX = centerX + mouthWidth / 2;
-    
-    switch (mood) {
-      case 'calm':
-        return `M ${leftX} ${mouthY} Q ${centerX} ${mouthY + faceRadius * 0.2} ${rightX} ${mouthY}`; // Gentle smile
-      case 'flare':
-        return `M ${leftX - 5} ${mouthY - 5} Q ${centerX} ${mouthY + faceRadius * 0.3} ${rightX + 5} ${mouthY - 5}`; // Wide grin
-      case 'storm':
-        return `M ${leftX} ${mouthY - 3} Q ${centerX} ${mouthY + faceRadius * 0.25} ${rightX} ${mouthY - 3}`; // Happy smile
-      case 'radiation':
-        return `M ${leftX + 5} ${mouthY + 5} Q ${centerX} ${mouthY + faceRadius * 0.1} ${rightX - 5} ${mouthY + 5}`; // Worried smile
-      case 'extreme':
-        return `M ${leftX - 8} ${mouthY - 8} Q ${centerX} ${mouthY + faceRadius * 0.4} ${rightX + 8} ${mouthY - 8}`; // Dramatic grin
-    }
-  };
-
-  const { eyeShape, eyebrowY, pupilSize } = getEyeExpression();
-  
-  const eyeSize = faceRadius * 0.15;
-  const eyeOffset = faceRadius * 0.35;
-  const leftEyeX = centerX - eyeOffset;
-  const rightEyeX = centerX + eyeOffset;
-  const eyeY = centerY - faceRadius * 0.15;
+  const { eyeType, mouthType } = getFaceExpression();
 
   return (
-    <g>
-      {/* Eyebrows */}
-      <motion.path
-        d={`M ${leftEyeX - eyeSize} ${eyeY - eyeSize - 5} Q ${leftEyeX} ${eyeY - eyeSize - 8} ${leftEyeX + eyeSize} ${eyeY - eyeSize - 5}`}
-        stroke="#8B4513"
-        strokeWidth={sunSize * 0.01}
-        fill="none"
-        strokeLinecap="round"
-        animate={{ y: eyebrowY }}
-        transition={{ duration: 0.3 }}
-      />
-      <motion.path
-        d={`M ${rightEyeX - eyeSize} ${eyeY - eyeSize - 5} Q ${rightEyeX} ${eyeY - eyeSize - 8} ${rightEyeX + eyeSize} ${eyeY - eyeSize - 5}`}
-        stroke="#8B4513"
-        strokeWidth={sunSize * 0.01}
-        fill="none"
-        strokeLinecap="round"
-        animate={{ y: eyebrowY }}
-        transition={{ duration: 0.3 }}
-      />
+    <g transform={`translate(${sunSize/2 - 100 * scale}, ${sunSize/2 - 100 * scale}) scale(${scale})`}>
+      {/* Eyes - Using exact same rendering as visualizer box */}
+      {eyeType === 'closed' ? (
+        <>
+          <path d="M 75 85 Q 80 90 85 85" stroke="#333" strokeWidth="3" fill="none" />
+          <path d="M 115 85 Q 120 90 125 85" stroke="#333" strokeWidth="3" fill="none" />
+        </>
+      ) : eyeType === 'normal' ? (
+        <>
+          <circle cx="80" cy="85" r="4" fill="#333" />
+          <circle cx="120" cy="85" r="4" fill="#333" />
+        </>
+      ) : eyeType === 'bright' ? (
+        <>
+          <circle cx="80" cy="85" r="5" fill="#333" />
+          <circle cx="120" cy="85" r="5" fill="#333" />
+          <circle cx="81" cy="83" r="2" fill="#FFF" />
+          <circle cx="121" cy="83" r="2" fill="#FFF" />
+        </>
+      ) : eyeType === 'intense' ? (
+        <>
+          <path d="M 70 80 L 85 85 L 70 90" stroke="#333" strokeWidth="3" fill="none" />
+          <path d="M 130 80 L 115 85 L 130 90" stroke="#333" strokeWidth="3" fill="none" />
+        </>
+      ) : (
+        <>
+          <circle cx="80" cy="85" r="6" fill="#333" />
+          <circle cx="120" cy="85" r="6" fill="#333" />
+          <circle cx="82" cy="83" r="2" fill="#FFF" />
+          <circle cx="122" cy="83" r="2" fill="#FFF" />
+        </>
+      )}
       
-      {/* Eyes */}
-      <motion.ellipse
-        cx={leftEyeX}
-        cy={eyeY}
-        rx={eyeSize}
-        ry={eyeShape === 'circle' ? eyeSize : eyeSize * 0.8}
-        fill="white"
-        stroke="#333"
-        strokeWidth={sunSize * 0.002}
-        animate={{ scaleY: eyeShape === 'circle' ? 1 : 0.8 }}
-        transition={{ duration: 0.3 }}
-      />
-      <motion.ellipse
-        cx={rightEyeX}
-        cy={eyeY}
-        rx={eyeSize}
-        ry={eyeShape === 'circle' ? eyeSize : eyeSize * 0.8}
-        fill="white"
-        stroke="#333"
-        strokeWidth={sunSize * 0.002}
-        animate={{ scaleY: eyeShape === 'circle' ? 1 : 0.8 }}
-        transition={{ duration: 0.3 }}
-      />
-      
-      {/* Pupils */}
-      <motion.circle
-        cx={leftEyeX}
-        cy={eyeY}
-        r={eyeSize * pupilSize}
-        fill="#1a1a1a"
-        animate={{ r: eyeSize * pupilSize }}
-        transition={{ duration: 0.3 }}
-      />
-      <motion.circle
-        cx={rightEyeX}
-        cy={eyeY}
-        r={eyeSize * pupilSize}
-        fill="#1a1a1a"
-        animate={{ r: eyeSize * pupilSize }}
-        transition={{ duration: 0.3 }}
-      />
-      
-      {/* Mouth */}
-      <motion.path
-        d={getMouthExpression()}
-        stroke="#8B4513"
-        strokeWidth={sunSize * 0.012}
-        fill="none"
-        strokeLinecap="round"
-        initial={false}
-        animate={{ d: getMouthExpression() }}
-        transition={{ duration: 0.3 }}
-      />
-
-      {/* Stress sweat drops for radiation mood */}
-      {mood === 'radiation' && (
-        <motion.g
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          <ellipse cx={centerX + faceRadius * 0.8} cy={centerY - faceRadius * 0.5} rx={faceRadius * 0.08} ry={faceRadius * 0.12} fill="#87CEEB" opacity="0.7" />
-          <ellipse cx={centerX - faceRadius * 0.9} cy={centerY - faceRadius * 0.3} rx={faceRadius * 0.06} ry={faceRadius * 0.1} fill="#87CEEB" opacity="0.7" />
-        </motion.g>
+      {/* Mouth - Using exact same rendering as visualizer box */}
+      {mouthType === 'peaceful' ? (
+        <path d="M 90 110 Q 100 105 110 110" stroke="#333" strokeWidth="2" fill="none" />
+      ) : mouthType === 'slight-smile' ? (
+        <path d="M 90 110 Q 100 115 110 110" stroke="#333" strokeWidth="2" fill="none" />
+      ) : mouthType === 'happy' ? (
+        <path d="M 85 110 Q 100 125 115 110" stroke="#333" strokeWidth="3" fill="none" />
+      ) : mouthType === 'neutral' ? (
+        <path d="M 90 115 L 110 115" stroke="#333" strokeWidth="2" fill="none" />
+      ) : mouthType === 'concerned' ? (
+        <path d="M 90 115 Q 100 110 110 115" stroke="#333" strokeWidth="3" fill="none" />
+      ) : (
+        <ellipse cx="100" cy="115" rx="8" ry="6" fill="#333" />
       )}
     </g>
   );

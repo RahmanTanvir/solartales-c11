@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Sun } from 'lucide-react';
 import Link from 'next/link';
 import Navigation from '@/components/Navigation';
 import { Footer } from '@/components/Footer';
@@ -9,11 +10,13 @@ import { FeaturesSection } from '@/components/FeatureCard';
 import { LiveDataDashboard } from '@/components/LiveDataDashboard';
 import SunCharacter from '@/components/SunCharacter';
 import SolarAdventureButton from '@/components/SolarAdventureButton';
+import SunMoodVisualizer from '../components/SunMoodVisualizer';
 import { useSunMood } from '@/hooks/useSunMood';
 
 export default function HomePage() {
   const [currentWeatherEvent, setCurrentWeatherEvent] = useState('Solar Activity Detected');
   const [hasMounted, setHasMounted] = useState(false);
+  const [showSunMoodVisualizer, setShowSunMoodVisualizer] = useState(false);
   const { mood, analysis, isLoading, refreshMood } = useSunMood();
 
   useEffect(() => {
@@ -37,24 +40,47 @@ export default function HomePage() {
           {/* Sun Character Section */}
           <div className="flex flex-col lg:flex-row items-center justify-between mb-16 gap-8">
             {/* Sun Character */}
-            <div className="lg:w-1/2 flex justify-center">
+            <div className="lg:w-1/2 flex flex-col items-center space-y-4">
+              <div className="flex justify-center">
+                {hasMounted && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 1, ease: 'easeOut' }}
+                  >
+                    <SunCharacter
+                      mood={mood}
+                      size="large"
+                      showDialogue={true}
+                      onSunClick={refreshMood}
+                      className="cursor-pointer"
+                    />
+                  </motion.div>
+                )}
+                {!hasMounted && (
+                  <div className="w-80 h-80 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse" />
+                )}
+              </div>
+              
+              {/* Sun Mood Visualizer Button */}
               {hasMounted && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 1, ease: 'easeOut' }}
-                >
-                  <SunCharacter
-                    mood={mood}
-                    size="large"
-                    showDialogue={true}
-                    onSunClick={refreshMood}
-                    className="cursor-pointer"
-                  />
-                </motion.div>
-              )}
-              {!hasMounted && (
-                <div className="w-80 h-80 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full animate-pulse" />
+                <div className="flex justify-center">
+                  <motion.button
+                    onClick={() => setShowSunMoodVisualizer(true)}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
+                    className="group relative px-4 py-2 rounded-xl font-medium text-white overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 hover:from-amber-400 hover:via-orange-400 hover:to-red-400"
+                  >
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-yellow-400/15 to-red-400/15 rounded-xl blur-md group-hover:blur-lg transition-all duration-300"></div>
+                    
+                    {/* Button content */}
+                    <div className="relative flex items-center gap-2">
+                      <Sun size={16} className="text-yellow-100 group-hover:rotate-12 transition-transform duration-300" />
+                      <span className="text-sm">Show All Moods</span>
+                    </div>
+                  </motion.button>
+                </div>
               )}
             </div>
 
@@ -123,6 +149,13 @@ export default function HomePage() {
       </main>
 
       <Footer />
+      
+      {/* Sun Mood Visualizer Modal */}
+      <SunMoodVisualizer 
+        isOpen={showSunMoodVisualizer}
+        onClose={() => setShowSunMoodVisualizer(false)}
+        currentMood={mood}
+      />
     </div>
   );
 }
