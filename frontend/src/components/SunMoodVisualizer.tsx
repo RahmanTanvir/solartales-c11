@@ -129,6 +129,21 @@ interface SunMoodVisualizerProps {
 export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm' }: SunMoodVisualizerProps) {
   const [selectedMood, setSelectedMood] = useState<SunMoodVisual['mood']>(currentMood);
 
+  // Prevent background scrolling when modal is open
+  React.useEffect(() => {
+    if (isOpen) {
+      // Store original overflow
+      const originalOverflow = document.body.style.overflow;
+      // Prevent scrolling
+      document.body.style.overflow = 'hidden';
+      
+      // Cleanup function
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen]);
+
   // Update selected mood when currentMood prop changes and modal opens
   React.useEffect(() => {
     if (isOpen) {
@@ -145,46 +160,51 @@ export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-start sm:items-center justify-center z-50 p-2 sm:p-4"
       onClick={onClose}
     >
       <motion.div
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.8, opacity: 0 }}
-        className="bg-gray-900/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-700/50 max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col"
+        className="bg-gray-900/95 backdrop-blur-lg rounded-2xl shadow-2xl border border-gray-700/50 w-full max-w-4xl max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col mt-2 sm:mt-0"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="bg-gray-800/90 backdrop-blur-sm border-b border-gray-700/50 p-6 text-white relative">
+        <div className="bg-gray-800/90 backdrop-blur-sm border-b border-gray-700/50 p-4 sm:p-6 text-white relative flex-shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 hover:bg-gray-700/50 rounded-full transition-colors"
+            className="absolute top-2 right-2 sm:top-4 sm:right-4 p-2 hover:bg-gray-700/50 rounded-full transition-colors z-10"
           >
-            <X size={24} />
+            <X size={20} className="sm:w-6 sm:h-6" />
           </button>
           
-          <div className="flex items-center gap-4 mb-4">
-            <Sun size={32} className="text-yellow-400" />
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Sun Mood Visualizer</h2>
+          <div className="flex items-center gap-2 sm:gap-4 mb-2 sm:mb-4 pr-12 sm:pr-16">
+            <Sun size={24} className="text-yellow-400 sm:w-8 sm:h-8 flex-shrink-0" />
+            <h2 className="text-xl sm:text-3xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">Sun Mood Visualizer</h2>
           </div>
           
-          <p className="text-lg text-gray-300">
+          <p className="text-sm sm:text-lg text-gray-300">
             Explore different space weather conditions and learn how the Sun affects Earth! 🌍
           </p>
         </div>
 
-        <div className="flex flex-col lg:flex-row flex-1 overflow-hidden">
+        <div className="flex flex-col lg:flex-row flex-1 min-h-0">
           {/* Mood Selection */}
-          <div className="lg:w-2/5 p-4 border-r border-gray-700/50 overflow-y-auto flex-shrink-0">
-            <h3 className="text-xl font-semibold mb-4 text-gray-100">Current Conditions</h3>
+          <div 
+            className="lg:w-2/5 p-3 sm:p-4 lg:border-r border-b lg:border-b-0 border-gray-700/50 overflow-y-auto flex-shrink-0 max-h-48 lg:max-h-none"
+            onScroll={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-gray-100">Current Conditions</h3>
             
-            <div className="space-y-2">
+            <div className="space-y-1 sm:space-y-2">
               {sunMoodVisuals.map((visual) => (
                 <motion.button
                   key={visual.mood}
                   onClick={() => setSelectedMood(visual.mood)}
-                  className={`w-full p-3 rounded-xl border-2 transition-all ${
+                  className={`w-full p-2 sm:p-3 rounded-xl border-2 transition-all ${
                     selectedMood === visual.mood
                       ? 'border-purple-500 bg-purple-900/30 shadow-md shadow-purple-500/20'
                       : 'border-gray-600/50 hover:border-gray-500/70 hover:bg-gray-800/50'
@@ -192,11 +212,11 @@ export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">{visual.emoji}</div>
-                    <div className="text-left flex-1">
-                      <h4 className="font-semibold text-gray-100">{visual.title}</h4>
-                      <p className="text-sm text-gray-300 mt-1">{visual.description}</p>
+                  <div className="flex items-center gap-2 sm:gap-3">
+                    <div className="text-xl sm:text-2xl flex-shrink-0">{visual.emoji}</div>
+                    <div className="text-left flex-1 min-w-0">
+                      <h4 className="font-semibold text-gray-100 text-sm sm:text-base">{visual.title}</h4>
+                      <p className="text-xs sm:text-sm text-gray-300 mt-1 truncate sm:whitespace-normal">{visual.description}</p>
                     </div>
                     {selectedMood === visual.mood && (
                       <motion.div
@@ -212,12 +232,17 @@ export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm
           </div>
 
           {/* Visualization */}
-          <div className="lg:w-3/5 p-4 overflow-y-auto flex-1">
+          <div 
+            className="lg:w-3/5 p-3 sm:p-4 overflow-y-auto flex-1 min-h-0"
+            onScroll={(e) => e.stopPropagation()}
+            onWheel={(e) => e.stopPropagation()}
+            onTouchMove={(e) => e.stopPropagation()}
+          >
             {selectedMoodData && (
-              <div className="space-y-4 h-full">
+              <div className="space-y-3 sm:space-y-4 pb-4">
                 {/* Sun Visualization */}
                 <div className="text-center">
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-3 sm:mb-4">
                     <SunCharacter
                       mood={selectedMoodData.mood}
                       size="large"
@@ -225,11 +250,11 @@ export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm
                     />
                   </div>
                   
-                  <h3 className="text-2xl font-bold text-gray-100 mb-2">
+                  <h3 className="text-xl sm:text-2xl font-bold text-gray-100 mb-2">
                     {selectedMoodData.title}
                   </h3>
                   
-                  <p className="text-gray-300 mb-4">
+                  <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4">
                     {selectedMoodData.description}
                   </p>
 
@@ -237,26 +262,26 @@ export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm
 
                 {/* Educational Details */}
                 {selectedMoodData.details && (
-                  <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-4 space-y-4">
+                  <div className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-3 sm:p-4 space-y-3 sm:space-y-4">
                     {/* What Happens */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-100 mb-2 flex items-center gap-2">
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-100 mb-2 flex items-center gap-2">
                         🌟 What's Happening
                       </h4>
-                      <p className="text-gray-300 leading-relaxed">
+                      <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
                         {selectedMoodData.details.whatHappens}
                       </p>
                     </div>
 
                     {/* Earth Effects */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-100 mb-2 flex items-center gap-2">
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-100 mb-2 flex items-center gap-2">
                         🌍 Effects on Earth
                       </h4>
                       <ul className="space-y-1">
                         {selectedMoodData.details.earthEffects.map((effect, index) => (
-                          <li key={index} className="text-gray-300 flex items-start gap-2">
-                            <span className="text-purple-400 mt-1">•</span>
+                          <li key={index} className="text-sm sm:text-base text-gray-300 flex items-start gap-2">
+                            <span className="text-purple-400 mt-1 flex-shrink-0">•</span>
                             <span>{effect}</span>
                           </li>
                         ))}
@@ -265,11 +290,11 @@ export default function SunMoodVisualizer({ isOpen, onClose, currentMood = 'calm
 
                     {/* Cool Fact */}
                     <div>
-                      <h4 className="text-lg font-semibold text-gray-100 mb-2 flex items-center gap-2">
+                      <h4 className="text-base sm:text-lg font-semibold text-gray-100 mb-2 flex items-center gap-2">
                         🤯 Cool Fact
                       </h4>
-                      <div className="bg-gray-900/70 rounded-lg p-3 border-l-4 border-purple-500">
-                        <p className="text-gray-300 leading-relaxed">
+                      <div className="bg-gray-900/70 rounded-lg p-2 sm:p-3 border-l-4 border-purple-500">
+                        <p className="text-sm sm:text-base text-gray-300 leading-relaxed">
                           {selectedMoodData.details.coolFact}
                         </p>
                       </div>
