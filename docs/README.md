@@ -2,9 +2,9 @@
 ## Where Space Weather Meets Storytelling  
 **NASA Space Apps Challenge 2025** 
 
-> **Stellar Stories: Space Weather Through the Eyes of Earthlings-
+> Stellar Stories: Space Weather Through the Eyes of Earthlings
 
-Although the Sun is 93 million miles away from our planet, solar activity can significantly impact our daily lives. "Space weather"—the variations that occur in the space environment between the Sun and Earth—can impact technologies in space and on Earth. Our challenge is to write and illustrate a digital children's story that explains what space weather is and the varying impacts it has on different people such as farmers, pilots, astronauts, power grid operators, and the general public.**
+Although the Sun is 93 million miles away from our planet, solar activity can significantly impact our daily lives. "Space weather"—the variations that occur in the space environment between the Sun and Earth—can impact technologies in space and on Earth. Our challenge is to write and illustrate a digital children's story that explains what space weather is and the varying impacts it has on different people such as farmers, pilots, astronauts, power grid operators, and the general public.
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-blue)](https://solartales.vercel.app/)  
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.txt)
