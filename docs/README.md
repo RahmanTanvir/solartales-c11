@@ -1,8 +1,10 @@
 # 🌌 SolarTales
 ## Where Space Weather Meets Storytelling  
-**Challenge-11 | NASA Space Apps Challenge 2025** 
+**NASA Space Apps Challenge 2025** 
 
-> **Transforming complex space weather data into engaging, educational narratives through AI-powered storytelling and immersive 3D visualizations.**
+> **Stellar Stories: Space Weather Through the Eyes of Earthlings-
+
+Although the Sun is 93 million miles away from our planet, solar activity can significantly impact our daily lives. "Space weather"—the variations that occur in the space environment between the Sun and Earth—can impact technologies in space and on Earth. Our challenge is to write and illustrate a digital children's story that explains what space weather is and the varying impacts it has on different people such as farmers, pilots, astronauts, power grid operators, and the general public.**
 
 [![Live Demo](https://img.shields.io/badge/Live-Demo-blue)](https://solartales.vercel.app/)  
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0.txt)
@@ -21,13 +23,13 @@
 
 The Space Weather Stories Platform revolutionizes space weather education by:
 
-- **🤖 AI-Powered Storytelling:** Generating personalized narratives from real space weather events
-- **🌐 Real-Time Data Integration:** Live NASA DONKI and NOAA space weather feeds
-- **🕰️ Time Travel Experience:** Journey through history's most significant space weather events
-- **🎮 Interactive 3D Visualizations:** Immersive solar system with animated space weather effects
-- **📱 Progressive Web App:** Offline-capable, installable across all devices
-- **🎓 Educational Focus:** Age-appropriate content with scientific accuracy
-- **♿ Accessibility First:** Inclusive design for all learners
+- **AI-Powered Storytelling:** Generating personalized narratives from real space weather events
+- **Real-Time Data Integration:** Live NASA DONKI and NOAA space weather feeds
+- **Time Travel Experience:** Journey through history's most significant space weather events
+- **Interactive 3D Visualizations:** Immersive solar system with animated space weather effects
+- **Progressive Web App:** Offline-capable, installable across all devices
+- **Educational Focus:** Age-appropriate content with scientific accuracy
+- **Accessibility First:** Inclusive design for all learners
 
 ---
 
